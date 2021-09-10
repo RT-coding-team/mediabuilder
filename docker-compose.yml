@@ -6,8 +6,8 @@ services:
     environment:
       - MYSQL_DATABASE=bolt
       - MYSQL_USER=bolt
-      - MYSQL_PASSWORD=!ChangeMe!
-      - MYSQL_ROOT_PASSWORD=!ChangeMe!
+      - MYSQL_PASSWORD=PassWord!123!
+      - MYSQL_ROOT_PASSWORD=PassWord!123!
     volumes:
       - db-data:/var/lib/mysql:rw
       # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!

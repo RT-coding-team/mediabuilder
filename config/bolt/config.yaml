@@ -178,7 +178,7 @@ accept_media_types: [ gif, jpg, jpeg, png, svg, pdf, mp3, tiff, avif, webp ]
 
 # Set the maximum upload size. Note, this can never exceed the settings for
 #`post_max_size` and `upload_max_filesize` in `php.ini`.
-accept_upload_size: 8M
+accept_upload_size: 2G
 
 # Default location for uploading files.
 upload_location: "{contenttype}/{year}/{month}/"
