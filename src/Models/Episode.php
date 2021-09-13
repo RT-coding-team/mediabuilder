@@ -81,8 +81,8 @@ class Episode
         string $title,
         string $desc,
         string $mediaType,
-        string $localImage,
-        string $localFilename
+        string $localFilename,
+        string $localImage
     )
     {
         if (!file_exists($localImage)) {

@@ -47,7 +47,8 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
     public function manage(): Response
     {
         $collections = $this->getCollections();
-        dd($collections);
+        $singles = $this->getSingles();
+        dd($singles);
         return $this->render('backend/exporter/index.twig', []);
     }
 
@@ -129,8 +130,8 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
             $content->getFieldValue('title'),
             $content->getFieldValue('description'),
             $mediaType,
-            $localImagePath,
-            $localFilePath
+            $localFilePath,
+            $localImagePath
         );
         $tags = $content->getTaxonomies('tags');
         foreach ($tags as $tag) {
@@ -158,6 +159,17 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
             }
         }
         return $collections;
+    }
+
+    /**
+     * Get all the singles
+     *
+     * @return Array<Single>    An array of singles
+     */
+    private function getSingles(): array {
+        $singles = [];
+
+        return $singles;
     }
 
 }
