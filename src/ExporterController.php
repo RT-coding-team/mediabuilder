@@ -3,6 +3,7 @@ namespace App;
 
 use App\Models\Collection;
 use App\Models\Episode;
+use App\Models\Single;
 use Symfony\Component\Routing\Annotation\Route;
 use Bolt\Controller\Backend\BackendZoneInterface;
 use Bolt\Controller\TwigAwareController;
@@ -64,20 +65,14 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
         if (!$content) {
             return null;
         }
-        $image = $content->getFieldValue('image');
-        $localImagePath = Path::join($this->publicDir, $image['path']);
-        $mediaTypes = $content->getTaxonomies('media_type');
-        $mediaType = 'other';
-        if (count($mediaTypes) > 0) {
-            $mediaType = $mediaTypes[0]->getName();
-        }
+        $localImagePath = $this->getFileFieldPublicPath($content, 'image');
         $recommendedValue = $content->getFieldValue('recommended');
         $recommended = ($recommendedValue == 'yes') ? true : false;
         $collection = new Collection(
             $content->getSlug(),
             $content->getFieldValue('title'),
             $content->getFieldValue('description'),
-            $mediaType,
+            $this->getMediaType($content),
             $localImagePath,
             $recommended
         );
@@ -116,20 +111,13 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
         if (!$content) {
             return null;
         }
-        $image = $content->getFieldValue('image');
-        $localImagePath = Path::join($this->publicDir, $image['path']);
-        $file = $content->getFieldValue('file');
-        $localFilePath = Path::join($this->publicDir, $file['path']);
-        $mediaTypes = $content->getTaxonomies('media_type');
-        $mediaType = 'other';
-        if (count($mediaTypes) > 0) {
-            $mediaType = $mediaTypes[0]->getName();
-        }
+        $localImagePath = $this->getFileFieldPublicPath($content, 'image');
+        $localFilePath = $this->getFileFieldPublicPath($content, 'file');
         $episode = new Episode(
             $content->getSlug(),
             $content->getFieldValue('title'),
             $content->getFieldValue('description'),
-            $mediaType,
+            $this->getMediaType($content),
             $localFilePath,
             $localImagePath
         );
@@ -138,6 +126,38 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
             $episode->addTag($tag->getName());
         }
         return $episode;
+    }
+
+    private function buildSingle(Content $content): Single
+    {
+        if (!$content) {
+            return null;
+        }
+        $recommendedValue = $content->getFieldValue('recommended');
+        $recommended = ($recommendedValue == 'yes') ? true : false;
+        $localImagePath = $this->getFileFieldPublicPath($content, 'image');
+        $localFilePath = $this->getFileFieldPublicPath($content, 'file');
+        $single = new Single(
+            $content->getSlug(),
+            $content->getFieldValue('title'),
+            $content->getFieldValue('description'),
+            $this->getMediaType($content),
+            $localFilePath,
+            $localImagePath,
+            $recommended
+        );
+        $tags = $content->getTaxonomies('tags');
+        foreach ($tags as $tag) {
+            $single->addTag($tag->getName());
+        }
+        $categoryRelations = $this->relationRepository->findRelations($content, 'categories');
+        if ($categoryRelations) {
+            foreach ($categoryRelations as $related) {
+                $category = $related->getToContent();
+                $single->addCategory($category->getFieldValue('name'));
+            }
+        }
+        return $single;
     }
 
     /**
@@ -162,13 +182,54 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
     }
 
     /**
+     * Get the public file for a file field
+     *
+     * @param  Content $content   The content
+     * @param  string  $fieldName The field name
+     * @return string             The path to the public file
+     * @access private
+     */
+    private function getFileFieldPublicPath(Content $content, string $fieldName): string
+    {
+        $file = $content->getFieldValue($fieldName);
+        return Path::join($this->publicDir, $file['path']);
+    }
+
+    /**
+     * get the media type
+     *
+     * @param  Content $content The content
+     * @return string           The type of media
+     * @access private
+     */
+    private function getMediaType(Content $content): string
+    {
+        $mediaTypes = $content->getTaxonomies('media_type');
+        $mediaType = 'other';
+        if (count($mediaTypes) > 0) {
+            $mediaType = $mediaTypes[0]->getName();
+        }
+        return $mediaType;
+    }
+
+
+    /**
      * Get all the singles
      *
      * @return Array<Single>    An array of singles
      */
     private function getSingles(): array {
         $singles = [];
-
+        $query = $this->contentRepository->findBy([
+            'contentType'   =>  'singles',
+            'status'        =>  Statuses::PUBLISHED
+        ]);
+        foreach ($query as $data) {
+            $single = $this->buildSingle($data);
+            if ($single) {
+                $singles[] = $single;
+            }
+        }
         return $singles;
     }
 
