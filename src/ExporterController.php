@@ -64,12 +64,15 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
         if (count($mediaTypes) > 0) {
             $mediaType = $mediaTypes[0]->getName();
         }
+        $recommendedValue = $content->getFieldValue('recommended');
+        $recommended = ($recommendedValue == 'yes') ? true : false;
         $collection = new Collection(
             $content->getSlug(),
             $content->getFieldValue('title'),
             $content->getFieldValue('description'),
             $mediaType,
-            $image['path']
+            $image['path'],
+            $recommended
         );
         $tags = $content->getTaxonomies('tags');
         foreach ($tags as $tag) {

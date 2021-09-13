@@ -40,6 +40,14 @@ collections:
       group: content
       localize: true
       required: true
+    recommended:
+      label: 'Recommended?'
+      type: select
+      values:
+        no: No
+        yes: Yes
+      default: no
+      required: true
     slug:
       type: slug
       uses: title
@@ -86,6 +94,14 @@ media:
       label: Media File
       group: content
       localize: true
+    recommended:
+      label: 'Recommended?'
+      type: select
+      values:
+        no: No
+        yes: Yes
+      default: no
+      required: true
     slug:
         type: slug
         uses: title
