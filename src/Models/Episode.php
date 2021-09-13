@@ -1,33 +1,31 @@
 <?php
 namespace App\Models;
 
-use App\Models\Episode;
-
 /**
- * A collection model
+ * A episode model
  */
-class Collection
+class Episode
 {
     /**
-     * An array of categories
-     *
-     * @var Array
-     */
-    public $categories = [];
-
-    /**
-     * The description of the collection
+     * The description of the episode.
      *
      * @var string
      */
     public $desc = '';
 
     /**
-     * An array of Media for the collection
+     * The media file
      *
-     * @var Array
+     * @var string
      */
-    public $episodes = [];
+    public $filename = '';
+
+    /**
+     * The path to the local media file
+     *
+     * @var string
+     */
+    public $localFilename = '';
 
     /**
      * The image of the collection
@@ -44,35 +42,35 @@ class Collection
     public $localImage = '';
 
     /**
-     * The media type of the collection
+     * The media type of the episode.
      *
      * @var string
      */
     public $mediaType = '';
 
     /**
-     * Is it recommended?
+     * The mime type of the file
      *
-     * @var boolean
+     * @var string
      */
-    public $recommended = false;
+    public $mimeType = '';
 
     /**
-     * The slug for the collection
+     * The slug of the episode.
      *
      * @var string
      */
     public $slug = '';
 
     /**
-     * An array of tags for the collection
+     * An array of tags
      *
      * @var Array
      */
     public $tags = [];
 
     /**
-     * The title for the collection
+     * The title of the episode.
      *
      * @var string
      */
@@ -84,11 +82,14 @@ class Collection
         string $desc,
         string $mediaType,
         string $localImage,
-        $recommended = false
+        string $localFilename
     )
     {
         if (!file_exists($localImage)) {
-            throw new \InvalidArgumentException('The collecion image does not exist!');
+            throw new \InvalidArgumentException('The episode image does not exist!');
+        }
+        if (!file_exists($localFilename)) {
+            throw new \InvalidArgumentException('The episode file does not exist!');
         }
         $this->slug = $slug;
         $this->title = $title;
@@ -96,32 +97,13 @@ class Collection
         $this->mediaType = $mediaType;
         $this->localImage = $localImage;
         $this->image = basename($localImage);
-        $this->recommended = $recommended;
+        $this->localFilename = $localFilename;
+        $this->filename = basename($localFilename);
+        $this->mimeType = mime_content_type($localFilename);
     }
 
     /**
-     * Add a category to this collection
-     *
-     * @param string $category The category to add
-     */
-    public function addCategory(string $category)
-    {
-        if (!in_array($category, $this->categories)) {
-            $this->categories[] = $category;
-        }
-    }
-
-    /**
-     * Add an episode to the collection
-     *
-     * @param Episode $episode The episode to add
-     */
-    public function addEpisode(Episode $episode) {
-        $this->episodes[] = $episode;
-    }
-
-    /**
-     * Add a tag to this collection
+     * Add a tag
      *
      * @param string $tag The tag to add
      */
@@ -131,4 +113,5 @@ class Collection
             $this->tags[] = $tag;
         }
     }
+
 }
