@@ -24,6 +24,12 @@ frontend:
 # Place your own routes here, that have a LOWER priority than the default routes.
 
 # Routes for the project-specific functionality
+
+exporter_panel:
+    resource: '../src/ExporterController.php'
+    prefix: '%bolt.backend_url%'
+    type: annotation
+
 project:
   resource: '../src/Controller'
   prefix: /
