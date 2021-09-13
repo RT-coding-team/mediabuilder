@@ -128,6 +128,13 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
         return $episode;
     }
 
+    /**
+     * Build a single
+     *
+     * @param  Content $content The content object
+     * @return Single           The single
+     * @access private
+     */
     private function buildSingle(Content $content): Single
     {
         if (!$content) {
