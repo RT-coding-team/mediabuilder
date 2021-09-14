@@ -3,6 +3,7 @@ namespace App\Utilities;
 
 use App\Models\Collection;
 use App\Models\Single;
+use App\Utilities\ExtendedZip;
 use Webmozart\PathUtil\Path;
 
 /**
@@ -164,8 +165,14 @@ class ContentExporter
     {
         $mainPath = Path::join($this->directories['export_data'], 'main.json');
         file_put_contents($mainPath, json_encode($this->mainData));
+        ExtendedZip::zipTree(
+            $this->directories['export_root'],
+            $this->directories['export_root'] . '.zip',
+            \ZipArchive::CREATE,
+            'content'
+        );
         //Remove our export directory
-        // $this->removeExportRoot();
+        $this->removeExportRoot();
     }
 
     /**
