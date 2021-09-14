@@ -1,16 +1,12 @@
 <?php
 namespace App\Exporter;
 
-use App\Exporter\Stores\CollectionsStore;
-use App\Exporter\Stores\SinglesStore;
-use App\Exporter\Utilities\ContentExporter;
+use App\Exporter\ExporterDefaults;
 use Symfony\Component\Routing\Annotation\Route;
+use Bolt\Configuration\Config;
 use Bolt\Controller\Backend\BackendZoneInterface;
 use Bolt\Controller\TwigAwareController;
-use Bolt\Repository\ContentRepository;
-use Bolt\Repository\RelationRepository;
 use Symfony\Component\HttpFoundation\Response;
-use Webmozart\PathUtil\Path;
 
 /**
  * The exporter class for exporting the content to MM Interface
@@ -19,73 +15,20 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
 {
 
     /**
-     * The directory in the public folder to store exports.
+     * The configuration class
      *
-     * @var string
+     * @var Config
      */
-    public $exportsDir = '/files/exports/';
-
-    /**
-     * Our collections store
-     *
-     * @var CollectionsStore
-     * @access private
-     */
-    private $collectionsStore = null;
-
-    /**
-     * An array of our directories.
-     *
-     * @var array
-     * @access private
-     */
-    private $directories = [
-        'exports'   =>  '',
-        'public'    =>  ''
-    ];
-
-    /**
-     * The content exporter
-     * @var ContentExporter
-     * @access private
-     */
-    private $contentExporter = null;
-
-    /**
-     * Our singles store
-     *
-     * @var SinglesStore
-     * @access private
-     */
-    private $singlesStore = null;
+    private $siteConfig = null;
 
     /**
      * Build the class
      *
-     * @param ContentRepository         $contentRepository      The content repository
-     * @param RelationRepository        $relationRepository     The relation repository
+     * @param Config $config The configuration class
      */
-    public function __construct(
-        ContentRepository $contentRepository,
-        RelationRepository $relationRepository
-    )
+    public function __construct(Config $config)
     {
-        $this->directories['public'] = Path::canonicalize(dirname(__DIR__, 2) . '/public/');
-        $this->directories['exports'] = Path::canonicalize($this->directories['public'] . $this->exportsDir);
-        if (!file_exists($this->directories['exports'])) {
-            mkdir($this->directories['exports'], 0777, true);
-        }
-        $this->collectionsStore = new CollectionsStore(
-            $contentRepository,
-            $relationRepository,
-            $this->directories['public']
-        );
-        $this->singlesStore = new SinglesStore(
-            $contentRepository,
-            $relationRepository,
-            $this->directories['public']
-        );
-        $this->contentExporter = new ContentExporter($this->directories['exports']);
+        $this->siteConfig = $config;
     }
 
     /**
@@ -93,24 +36,11 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
      */
     public function manage(): Response
     {
-        // $this->export();
+        $publicPath = $this->siteConfig->get('general/exporter/public_path');
+        if (!$publicPath) {
+            $publicPath = ExporterDefaults::PUBLIC_PATH;
+        }
         return $this->render('backend/exporter/index.twig', []);
-    }
-
-    // TODO: Handle all the locales. Can we get the supported locals dynamically
-    // TODO: Handle languges.json file
-    public function export() {
-        set_time_limit(0);
-        $this->contentExporter->start();
-        $collections = $this->collectionsStore->findAll();
-        foreach ($collections as $collection) {
-            $this->contentExporter->addCollection($collection);
-        }
-        $singles = $this->singlesStore->findAll();
-        foreach ($singles as $single) {
-            $this->contentExporter->addSingle($single);
-        }
-        $this->contentExporter->finish();
     }
 
 }

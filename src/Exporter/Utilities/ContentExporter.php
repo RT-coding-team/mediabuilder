@@ -1,6 +1,7 @@
 <?php
 namespace App\Exporter\Utilities;
 
+use App\Exporter\ExporterDefaults;
 use App\Exporter\Models\Collection;
 use App\Exporter\Models\Single;
 use App\Exporter\Utilities\ExtendedZip;
@@ -60,17 +61,17 @@ class ContentExporter
     /**
      * Start the export process.
      *
-     * @param   string  $locale         The locale we are working with (default: en)
-     * @param   string  $name           The name to append to the archive (default: export)
-     * @param   string  $dateFormat     A date format to append to the end of the archive (default: m-d-Y-H-i)
+     * @param   string  $locale             The locale we are working with (default: en)
+     * @param   string  $filePrefix         The name to append to the archive (default: ExporterDefaults::FILE_PREFIX)
+     * @param   string  $fileDateSuffix     A date format to append to the end of the archive (default: ExporterDefaults::FILE_DATE_SUFFIX)
      * @return void
      *
      * @link https://www.php.net/manual/en/datetime.format.php
      */
     public function start(
         string $locale = 'en',
-        string $name = 'export',
-        string $dateFormat = 'm-d-Y-H-i'
+        string $filePrefix = ExporterDefaults::FILE_PREFIX,
+        string $fileDateSuffix = ExporterDefaults::FILE_DATE_SUFFIX
     )
     {
         $today = new \DateTime();
@@ -78,7 +79,7 @@ class ContentExporter
             'itemName'  =>  'Exported Data',
             'content'   =>  []
         ];
-        $this->exportFilename = $name . '-' . $today->format($dateFormat);
+        $this->exportFilename = $filePrefix . '-' . $today->format($fileDateSuffix);
         $this->directories['export_root'] = Path::join($this->exportsDir, $this->exportFilename);
         $this->directories['locale_root'] = Path::join($this->directories['export_root'], $locale);
         if (!file_exists($this->directories['export_root'])) {
