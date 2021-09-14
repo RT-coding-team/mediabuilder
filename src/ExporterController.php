@@ -95,8 +95,8 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
     {
         set_time_limit(0);
         $this->contentExporter->start();
-        $collections = $this->collectionsStore->findAll();
-        $this->contentExporter->addCollection($collections[0]);
+        $singles = $this->singlesStore->findAll();
+        $this->contentExporter->addSingle($singles[0]);
         $this->contentExporter->finish();
         return $this->render('backend/exporter/index.twig', []);
     }

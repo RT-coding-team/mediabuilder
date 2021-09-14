@@ -2,6 +2,7 @@
 namespace App\Utilities;
 
 use App\Models\Collection;
+use App\Models\Single;
 use Webmozart\PathUtil\Path;
 
 /**
@@ -132,6 +133,29 @@ class ContentExporter
     }
 
     /**
+     * Add a Single to the export package.
+     *
+     * @param Single $single The single to add
+     */
+    public function addSingle(Single $single)
+    {
+        // Add data file
+        $clone = clone $single;
+        unset($clone->localImage);
+        unset($clone->localFilename);
+        if (!$clone->recommended) {
+            unset($clone->recommended);
+        }
+        $dataFilePath = Path::join($this->directories['export_data'], $clone->slug . '.json');
+        file_put_contents($dataFilePath, json_encode($clone));
+        // Store files
+        copy($single->localImage, Path::join($this->directories['export_images'], $single->image));
+        copy($single->localFilename, Path::join($this->directories['export_media'], $single->filename));
+        // Add to main data
+        $this->mainData['content'][] = $clone;
+    }
+
+    /**
      * Finish up the exporting
      *
      * @return void
@@ -140,7 +164,18 @@ class ContentExporter
     {
         $mainPath = Path::join($this->directories['export_data'], 'main.json');
         file_put_contents($mainPath, json_encode($this->mainData));
-        // Remove our export directory
+        //Remove our export directory
+        // $this->removeExportRoot();
+    }
+
+    /**
+     * Remove the export_root directory.
+     *
+     * @return  void
+     * @access  private
+     */
+    private function removeExportRoot()
+    {
         $files = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator(
                 $this->directories['export_root'],
