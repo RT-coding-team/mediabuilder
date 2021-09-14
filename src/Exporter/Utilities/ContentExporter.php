@@ -5,6 +5,7 @@ use App\Exporter\ExporterDefaults;
 use App\Exporter\Models\Collection;
 use App\Exporter\Models\Single;
 use App\Exporter\Utilities\ExtendedZip;
+use Symfony\Component\Console\Output\OutputInterface;
 use Webmozart\PathUtil\Path;
 
 /**
@@ -50,12 +51,29 @@ class ContentExporter
      */
     private $mainData = [];
 
+    /**
+     * An output interface to printing progress
+     *
+     * @var OutputInterface
+     */
+    private $output = null;
+
     public function __construct(string $exportsDir)
     {
         if (!file_exists($exportsDir)) {
             throw new \InvalidArgumentException('The exports directory does not exist!');
         }
         $this->exportsDir = $exportsDir;
+    }
+
+    /**
+     * Set the output interface to retrieve progress updates.
+     *
+     * @param OutputInterface $output The interface that conforms to OutputInterface
+     */
+    public function setOutput(OutputInterface $output)
+    {
+        $this->output = $output;
     }
 
     /**
@@ -74,11 +92,13 @@ class ContentExporter
         string $fileDateSuffix = ExporterDefaults::FILE_DATE_SUFFIX
     )
     {
+        $this->log('Export started!');
         $today = new \DateTime();
         $this->mainData = [
             'itemName'  =>  'Exported Data',
             'content'   =>  []
         ];
+        $this->log('Setting up the directories.');
         $this->exportFilename = $filePrefix . '-' . $today->format($fileDateSuffix);
         $this->directories['export_root'] = Path::join($this->exportsDir, $this->exportFilename);
         $this->directories['locale_root'] = Path::join($this->directories['export_root'], $locale);
@@ -98,6 +118,7 @@ class ContentExporter
         if (!file_exists($this->directories['export_media'])) {
             mkdir($this->directories['export_media']);
         }
+        $this->log('Setup complete.');
     }
 
     /**
@@ -108,6 +129,7 @@ class ContentExporter
     public function addCollection(Collection $collection)
     {
         // Add data file
+        $this->log('Adding a new collection: ' . $collection->title);
         $clone = clone $collection;
         unset($clone->localImage);
         if (!$clone->recommended) {
@@ -115,14 +137,19 @@ class ContentExporter
         }
         foreach ($clone->episodes as $episode) {
             // Store episode files
+            $this->log('Adding a new episode: ' . $episode->title);
+            $this->log('Copying file: ' . $episode->image);
             copy($episode->localImage, Path::join($this->directories['export_images'], $episode->image));
+            $this->log('Copying file: ' . $episode->filename);
             copy($episode->localFilename, Path::join($this->directories['export_media'], $episode->filename));
             unset($episode->localImage);
             unset($episode->localFilename);
         }
+        $this->log('Creating data file: ' . $clone->slug . '.json');
         $dataFilePath = Path::join($this->directories['export_data'], $clone->slug . '.json');
         file_put_contents($dataFilePath, json_encode($clone));
         // Store files
+        $this->log('Copying file: ' . $collection->image);
         copy($collection->localImage, Path::join($this->directories['export_images'], $collection->image));
         // Add to main data
         $mainClone = clone $collection;
@@ -132,6 +159,7 @@ class ContentExporter
             unset($mainClone->recommended);
         }
         $this->mainData['content'][] = $mainClone;
+        $this->log('Collection added!');
     }
 
     /**
@@ -142,19 +170,24 @@ class ContentExporter
     public function addSingle(Single $single)
     {
         // Add data file
+        $this->log('Adding a new single: ' . $single->title);
         $clone = clone $single;
         unset($clone->localImage);
         unset($clone->localFilename);
         if (!$clone->recommended) {
             unset($clone->recommended);
         }
+        $this->log('Creating data file: ' . $clone->slug . '.json');
         $dataFilePath = Path::join($this->directories['export_data'], $clone->slug . '.json');
         file_put_contents($dataFilePath, json_encode($clone));
         // Store files
+        $this->log('Copying file: ' . $single->image);
         copy($single->localImage, Path::join($this->directories['export_images'], $single->image));
+        $this->log('Copying file: ' . $single->filename);
         copy($single->localFilename, Path::join($this->directories['export_media'], $single->filename));
         // Add to main data
         $this->mainData['content'][] = $clone;
+        $this->log('Single added!');
     }
 
     /**
@@ -164,16 +197,21 @@ class ContentExporter
      */
     public function finish()
     {
+        $this->log('Completing export!');
+        $this->log('Creating data file: main.json');
         $mainPath = Path::join($this->directories['export_data'], 'main.json');
         file_put_contents($mainPath, json_encode($this->mainData));
+        $this->log('Zipping up the archive.');
         ExtendedZip::zipTree(
             $this->directories['export_root'],
             $this->directories['export_root'] . '.zip',
             \ZipArchive::CREATE,
             'content'
         );
+        $this->log('Archive has been zipped up. Doing some clean up.');
         //Remove our export directory
         $this->removeExportRoot();
+        $this->log('Done!');
     }
 
     /**
@@ -196,5 +234,21 @@ class ContentExporter
             $todo($fileinfo->getRealPath());
         }
         rmdir($this->directories['export_root']);
+    }
+
+    /**
+     * Log a message
+     *
+     * @param  string $message The message to log
+     * @return void
+     * @access private
+     */
+    private function log(string $message)
+    {
+        if (!$this->output) {
+            echo $message . "\r\n";
+            return;
+        }
+        $this->output->writeln($message);
     }
 }

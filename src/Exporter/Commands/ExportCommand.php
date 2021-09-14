@@ -127,6 +127,7 @@ class ExportCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         set_time_limit(0);
+        $this->contentExporter->setOutput($output);
         $this->export();
         return Command::SUCCESS;
     }
