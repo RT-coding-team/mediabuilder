@@ -1,13 +1,20 @@
 <?php
-namespace App\Models;
+namespace App\Exporter\Models;
 
 /**
- * A episode model
+ * A single model
  */
-class Episode
+class Single
 {
     /**
-     * The description of the episode.
+     * An array of categories
+     *
+     * @var Array
+     */
+    public $categories = [];
+
+    /**
+     * The description of the single
      *
      * @var string
      */
@@ -28,21 +35,21 @@ class Episode
     public $localFilename = '';
 
     /**
-     * The image of the collection
+     * The image of the single
      *
      * @var string
      */
     public $image = '';
 
     /**
-     * The path to the local image of the collection
+     * The path to the local image of the single
      *
      * @var string
      */
     public $localImage = '';
 
     /**
-     * The media type of the episode.
+     * The media type of the single
      *
      * @var string
      */
@@ -56,21 +63,28 @@ class Episode
     public $mimeType = '';
 
     /**
-     * The slug of the episode.
+     * Is it recommended?
+     *
+     * @var boolean
+     */
+    public $recommended = false;
+
+    /**
+     * The slug for the single
      *
      * @var string
      */
     public $slug = '';
 
     /**
-     * An array of tags
+     * An array of tags for the single
      *
      * @var Array
      */
     public $tags = [];
 
     /**
-     * The title of the episode.
+     * The title for the single
      *
      * @var string
      */
@@ -82,14 +96,15 @@ class Episode
         string $desc,
         string $mediaType,
         string $localFilename,
-        string $localImage
+        string $localImage,
+        $recommended = false
     )
     {
         if (!file_exists($localImage)) {
-            throw new \InvalidArgumentException('The episode image does not exist!');
+            throw new \InvalidArgumentException('The single image does not exist!');
         }
         if (!file_exists($localFilename)) {
-            throw new \InvalidArgumentException('The episode file does not exist!');
+            throw new \InvalidArgumentException('The single file does not exist!');
         }
         $this->slug = $slug;
         $this->title = $title;
@@ -100,10 +115,23 @@ class Episode
         $this->localFilename = $localFilename;
         $this->filename = basename($localFilename);
         $this->mimeType = mime_content_type($localFilename);
+        $this->recommended = $recommended;
     }
 
     /**
-     * Add a tag
+     * Add a category to this single
+     *
+     * @param string $category The category to add
+     */
+    public function addCategory(string $category)
+    {
+        if (!in_array($category, $this->categories)) {
+            $this->categories[] = $category;
+        }
+    }
+
+    /**
+     * Add a tag to this single
      *
      * @param string $tag The tag to add
      */
@@ -113,5 +141,4 @@ class Episode
             $this->tags[] = $tag;
         }
     }
-
 }

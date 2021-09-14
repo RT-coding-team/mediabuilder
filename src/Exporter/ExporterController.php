@@ -1,9 +1,9 @@
 <?php
-namespace App;
+namespace App\Exporter;
 
-use App\Stores\CollectionsStore;
-use App\Stores\SinglesStore;
-use App\Utilities\ContentExporter;
+use App\Exporter\Stores\CollectionsStore;
+use App\Exporter\Stores\SinglesStore;
+use App\Exporter\Utilities\ContentExporter;
 use Symfony\Component\Routing\Annotation\Route;
 use Bolt\Controller\Backend\BackendZoneInterface;
 use Bolt\Controller\TwigAwareController;
@@ -70,7 +70,7 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
         RelationRepository $relationRepository
     )
     {
-        $this->directories['public'] = Path::canonicalize(dirname(__DIR__, 1) . '/public/');
+        $this->directories['public'] = Path::canonicalize(dirname(__DIR__, 2) . '/public/');
         $this->directories['exports'] = Path::canonicalize($this->directories['public'] . $this->exportsDir);
         if (!file_exists($this->directories['exports'])) {
             mkdir($this->directories['exports'], 0777, true);
@@ -93,17 +93,24 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
      */
     public function manage(): Response
     {
-        set_time_limit(0);
-        $this->contentExporter->start();
-        $singles = $this->singlesStore->findAll();
-        $this->contentExporter->addSingle($singles[0]);
-        $this->contentExporter->finish();
+        // $this->export();
         return $this->render('backend/exporter/index.twig', []);
     }
 
+    // TODO: Handle all the locales. Can we get the supported locals dynamically
+    // TODO: Handle languges.json file
     public function export() {
+        set_time_limit(0);
+        $this->contentExporter->start();
         $collections = $this->collectionsStore->findAll();
+        foreach ($collections as $collection) {
+            $this->contentExporter->addCollection($collection);
+        }
         $singles = $this->singlesStore->findAll();
+        foreach ($singles as $single) {
+            $this->contentExporter->addSingle($single);
+        }
+        $this->contentExporter->finish();
     }
 
 }

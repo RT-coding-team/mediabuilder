@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Utilities;
+namespace App\Exporter\Utilities;
 
 /**
  * Recursively zip a directory.  To use:

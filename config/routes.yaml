@@ -26,7 +26,7 @@ frontend:
 # Routes for the project-specific functionality
 
 exporter_panel:
-    resource: '../src/ExporterController.php'
+    resource: '../src/Exporter/ExporterController.php'
     prefix: '%bolt.backend_url%'
     type: annotation
 

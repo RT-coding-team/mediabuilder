@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Exporter;
 
 use Bolt\Menu\ExtensionBackendMenuInterface;
 use Knp\Menu\MenuItem;

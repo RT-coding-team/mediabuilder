@@ -1,8 +1,8 @@
 <?php
-namespace App\Stores;
+namespace App\Exporter\Stores;
 
-use App\Models\Collection;
-use App\Models\Episode;
+use App\Exporter\Models\Collection;
+use App\Exporter\Models\Episode;
 use Bolt\Entity\Content;
 use Bolt\Enum\Statuses;
 use Bolt\Repository\ContentRepository;

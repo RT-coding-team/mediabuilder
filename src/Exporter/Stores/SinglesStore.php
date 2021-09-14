@@ -1,7 +1,7 @@
 <?php
-namespace App\Stores;
+namespace App\Exporter\Stores;
 
-use App\Models\Single;
+use App\Exporter\Models\Single;
 use Bolt\Entity\Content;
 use Bolt\Enum\Statuses;
 use Bolt\Repository\ContentRepository;

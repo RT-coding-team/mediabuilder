@@ -1,7 +1,7 @@
 <?php
-namespace App\Models;
+namespace App\Exporter\Models;
 
-use App\Models\Episode;
+use App\Exporter\Models\Episode;
 
 /**
  * A collection model

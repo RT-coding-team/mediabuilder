@@ -1,9 +1,9 @@
 <?php
-namespace App\Utilities;
+namespace App\Exporter\Utilities;
 
-use App\Models\Collection;
-use App\Models\Single;
-use App\Utilities\ExtendedZip;
+use App\Exporter\Models\Collection;
+use App\Exporter\Models\Single;
+use App\Exporter\Utilities\ExtendedZip;
 use Webmozart\PathUtil\Path;
 
 /**
