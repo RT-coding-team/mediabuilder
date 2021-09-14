@@ -128,16 +128,17 @@ class ExportCommand extends Command
     {
         set_time_limit(0);
         $this->contentExporter->setOutput($output);
-        $this->export();
+        $this->export($output);
         return Command::SUCCESS;
     }
 
     /**
      * Export the content
+     * @param  OutputInterface $output The output interface
      *
      * @access private
      */
-    private function export(): void
+    private function export(OutputInterface $output): void
     {
         $filePrefix = $this->siteConfig->get('general/exporter/file_prefix');
         if (!$filePrefix) {
@@ -152,10 +153,11 @@ class ExportCommand extends Command
         foreach ($collections as $collection) {
             $this->contentExporter->addCollection($collection);
         }
-        // $singles = $this->singlesStore->findAll();
-        // foreach ($singles as $single) {
-        //     $this->contentExporter->addSingle($single);
-        // }
+        $singles = $this->singlesStore->findAll();
+        $this->contentExporter->addSingle($singles[0]);
+        foreach ($singles as $single) {
+            $this->contentExporter->addSingle($single);
+        }
         $this->contentExporter->finish();
     }
 

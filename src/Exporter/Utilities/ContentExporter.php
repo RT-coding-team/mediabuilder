@@ -58,6 +58,14 @@ class ContentExporter
      */
     private $output = null;
 
+    /**
+     * An array of locales provided by the user
+     *
+     * @var array
+     * @access private
+     */
+    private $providedLocales = [];
+
     public function __construct(string $exportsDir)
     {
         if (!file_exists($exportsDir)) {
@@ -87,7 +95,7 @@ class ContentExporter
      * @link https://www.php.net/manual/en/datetime.format.php
      */
     public function start(
-        string $locale = 'en',
+        $locale = 'en',
         string $filePrefix = ExporterDefaults::FILE_PREFIX,
         string $fileDateSuffix = ExporterDefaults::FILE_DATE_SUFFIX
     )
@@ -98,27 +106,44 @@ class ContentExporter
             'itemName'  =>  'Exported Data',
             'content'   =>  []
         ];
-        $this->log('Setting up the directories.');
         $this->exportFilename = $filePrefix . '-' . $today->format($fileDateSuffix);
         $this->directories['export_root'] = Path::join($this->exportsDir, $this->exportFilename);
-        $this->directories['locale_root'] = Path::join($this->directories['export_root'], $locale);
         if (!file_exists($this->directories['export_root'])) {
             mkdir($this->directories['export_root'], 0777, true);
         }
-        // Set up the directories
-        $this->directories['export_data'] = Path::join($this->directories['export_root'], 'data');
+        $this->startLocale($locale);
+        $this->log('Setup complete.');
+    }
+
+    /**
+     * Start a new locale which sets up the required folder structure
+     *
+     * @param  string $locale The locale
+     * @return void
+     */
+    public function startLocale($locale = 'en')
+    {
+        $this->log('Start Locale: ' . $locale);
+        if (!in_array($locale, $this->providedLocales)) {
+            $this->providedLocales[] = $locale;
+        }
+        $this->directories['locale_root'] = Path::join($this->directories['export_root'], $locale);
+        if (!file_exists($this->directories['locale_root'])) {
+            mkdir($this->directories['locale_root'], 0777, true);
+        }
+        $this->directories['export_data'] = Path::join($this->directories['locale_root'], 'data');
         if (!file_exists($this->directories['export_data'])) {
             mkdir($this->directories['export_data']);
         }
-        $this->directories['export_images'] = Path::join($this->directories['export_root'], 'images');
+        $this->directories['export_images'] = Path::join($this->directories['locale_root'], 'images');
         if (!file_exists($this->directories['export_images'])) {
             mkdir($this->directories['export_images']);
         }
-        $this->directories['export_media'] = Path::join($this->directories['export_root'], 'media');
+        $this->directories['export_media'] = Path::join($this->directories['locale_root'], 'media');
         if (!file_exists($this->directories['export_media'])) {
             mkdir($this->directories['export_media']);
         }
-        $this->log('Setup complete.');
+        $this->log('Locale set up.');
     }
 
     /**
@@ -210,21 +235,28 @@ class ContentExporter
         );
         $this->log('Archive has been zipped up. Doing some clean up.');
         //Remove our export directory
-        $this->removeExportRoot();
+        foreach ($this->providedLocales as $locale) {
+            $this->removeDirectory(Path::join($this->directories['export_root'], $locale));
+        }
+        $this->removeDirectory($this->directories['export_root']);
         $this->log('Done!');
     }
 
     /**
-     * Remove the export_root directory.
+     * Remove the directory recursuvely.
      *
+     * @param   string  $directory  The directory to remove
      * @return  void
      * @access  private
      */
-    private function removeExportRoot()
+    private function removeDirectory(string $directory)
     {
+        if (!file_exists($directory)) {
+            return;
+        }
         $files = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator(
-                $this->directories['export_root'],
+                $directory,
                 \RecursiveDirectoryIterator::SKIP_DOTS
             ),
             \RecursiveIteratorIterator::CHILD_FIRST
@@ -233,7 +265,7 @@ class ContentExporter
             $todo = ($fileinfo->isDir() ? 'rmdir' : 'unlink');
             $todo($fileinfo->getRealPath());
         }
-        rmdir($this->directories['export_root']);
+        rmdir($directory);
     }
 
     /**
