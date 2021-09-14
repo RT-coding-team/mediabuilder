@@ -88,7 +88,7 @@ class Collection
     )
     {
         if (!file_exists($localImage)) {
-            throw new \InvalidArgumentException('The collecion image does not exist!');
+            throw new \InvalidArgumentException('The collection image does not exist!');
         }
         $this->slug = $slug;
         $this->title = $title;
