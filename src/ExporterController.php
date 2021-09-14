@@ -3,6 +3,7 @@ namespace App;
 
 use App\Stores\CollectionsStore;
 use App\Stores\SinglesStore;
+use App\Utilities\ContentExporter;
 use Symfony\Component\Routing\Annotation\Route;
 use Bolt\Controller\Backend\BackendZoneInterface;
 use Bolt\Controller\TwigAwareController;
@@ -18,12 +19,37 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
 {
 
     /**
+     * The directory in the public folder to store exports.
+     *
+     * @var string
+     */
+    public $exportsDir = '/files/exports/';
+
+    /**
      * Our collections store
      *
      * @var CollectionsStore
      * @access private
      */
     private $collectionsStore = null;
+
+    /**
+     * An array of our directories.
+     *
+     * @var array
+     * @access private
+     */
+    private $directories = [
+        'exports'   =>  '',
+        'public'    =>  ''
+    ];
+
+    /**
+     * The content exporter
+     * @var ContentExporter
+     * @access private
+     */
+    private $contentExporter = null;
 
     /**
      * Our singles store
@@ -44,17 +70,22 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
         RelationRepository $relationRepository
     )
     {
-        $this->publicDir = Path::canonicalize(dirname(__DIR__, 1) . '/public/');
+        $this->directories['public'] = Path::canonicalize(dirname(__DIR__, 1) . '/public/');
+        $this->directories['exports'] = Path::canonicalize($this->directories['public'] . $this->exportsDir);
+        if (!file_exists($this->directories['exports'])) {
+            mkdir($this->directories['exports'], 0777, true);
+        }
         $this->collectionsStore = new CollectionsStore(
             $contentRepository,
             $relationRepository,
-            $this->publicDir
+            $this->directories['public']
         );
         $this->singlesStore = new SinglesStore(
             $contentRepository,
             $relationRepository,
-            $this->publicDir
+            $this->directories['public']
         );
+        $this->contentExporter = new ContentExporter($this->directories['exports']);
     }
 
     /**
@@ -62,10 +93,17 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
      */
     public function manage(): Response
     {
+        set_time_limit(0);
+        $this->contentExporter->start();
+        $collections = $this->collectionsStore->findAll();
+        $this->contentExporter->addCollection($collections[0]);
+        $this->contentExporter->finish();
+        return $this->render('backend/exporter/index.twig', []);
+    }
+
+    public function export() {
         $collections = $this->collectionsStore->findAll();
         $singles = $this->singlesStore->findAll();
-        dd($singles);
-        return $this->render('backend/exporter/index.twig', []);
     }
 
 }
