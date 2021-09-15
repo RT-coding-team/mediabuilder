@@ -4,11 +4,13 @@ namespace App\Exporter\Commands;
 use App\Exporter\ExporterDefaults;
 use App\Exporter\Models\Language;
 use App\Exporter\Stores\CollectionsStore;
+use App\Exporter\Stores\PackagesStore;
 use App\Exporter\Stores\SinglesStore;
 use App\Exporter\Utilities\Config;
 use App\Exporter\Utilities\ContentExporter;
 use Bolt\Repository\ContentRepository;
 use Bolt\Repository\RelationRepository;
+use Bolt\Repository\TaxonomyRepository;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -61,6 +63,14 @@ class ExportCommand extends Command
     private $contentExporter = null;
 
     /**
+     * Our packages store
+     *
+     * @var PackagesStore
+     * @access private
+     */
+    private $packagesStore = null;
+
+    /**
      * Our singles store
      *
      * @var SinglesStore
@@ -73,10 +83,13 @@ class ExportCommand extends Command
      *
      * @param ContentRepository         $contentRepository      The content repository
      * @param RelationRepository        $relationRepository     The relation repository
+     * @param TaxonomyRepository        $taxonomyRepository     The taxonomy repository
+     *
      */
     public function __construct(
         ContentRepository $contentRepository,
-        RelationRepository $relationRepository
+        RelationRepository $relationRepository,
+        TaxonomyRepository $taxonomyRepository
     )
     {
         parent::__construct();
@@ -100,6 +113,7 @@ class ExportCommand extends Command
             $relationRepository,
             $this->directories['public']
         );
+        $this->packagesStore = new PackagesStore($taxonomyRepository);
         $this->contentExporter = new ContentExporter($this->directories['exports']);
     }
 

@@ -63,7 +63,7 @@ collections:
       order: title
       label: Add Episodes
       group: content
-  taxonomy: [ media_type, tags ]
+  taxonomy: [ media_type, packages, tags ]
   icon_many: "fa:layer-group"
   icon_one: "fa:layer-group"
   locales: ['en', 'es']
@@ -152,7 +152,7 @@ singles:
       multiple: true
       order: name
       label: Select Categories
-  taxonomy: [ media_type, tags ]
+  taxonomy: [ media_type, packages, tags ]
   icon_many: "fa:square"
   icon_one: "fa:square"
   locales: ['en', 'es']
