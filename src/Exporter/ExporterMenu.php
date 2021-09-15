@@ -34,7 +34,7 @@ class ExporterMenu implements ExtensionBackendMenuInterface
         // This adds a new heading
         $menu->addChild('Exporter', [
             'extras' => [
-                'name' => 'Exporter',
+                'name' => 'Interface Exporter',
                 'type' => 'separator',
             ]
         ]);
