@@ -161,9 +161,11 @@ class ExportCommand extends Command
                 $lang['text'],
                 boolval($lang['default'])
             );
-            // Add the language
-
-            $this->contentExporter->startLocale($lang['bolt_locale_code']);
+            $interface = $this->config->get('exporter/interface/' . $lang['bolt_locale_code']);
+            if (!$interface) {
+                $interface = [];
+            }
+            $this->contentExporter->startLocale($lang['bolt_locale_code'], $interface);
             $this->contentExporter->addLanguage($language);
             $collections = $this->collectionsStore->findAll($lang['bolt_locale_code']);
             foreach ($collections as $collection) {

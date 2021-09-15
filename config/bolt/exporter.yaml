@@ -15,3 +15,40 @@ exporter:
       bolt_locale_code: es
       codes: ['es']
       default: false
+  interface:
+    en:
+      APP_NAME: 'Media Interface'
+      APP_LOGO: ''
+      CATEGORIES_TITLE: 'Categories'
+      EPISODES_TEXT: 'Episodes'
+      LANGUAGE_BUTTON: 'Language'
+      OTHER_MEDIA_TITLE: 'Other Media'
+      MEDIA_TYPE:
+        AUDIO: 'Audio'
+        DOCUMENT: 'Document'
+        EPUB: 'EPUB'
+        PDF: 'PDF'
+        VIDEO: 'Video'
+      MISSING_MEDIA_TITLE: 'Media is missing!'
+      MISSING_MEDIA_TEXT: 'Something went wrong! The media is missing!'
+      RECOMMENDED_TITLE: 'For You'
+      RECOMMENDED_TEXT: 'Recommended'
+      UNSUPPORTED_TEXT: 'Sorry, your browser does not support videos.'
+    es:
+      APP_NAME: 'Interfaz de medios'
+      APP_LOGO: ''
+      CATEGORIES_TITLE: 'Categorías'
+      EPISODES_TEXT: 'Episodios'
+      LANGUAGE_BUTTON: 'Idioma'
+      OTHER_MEDIA_TITLE: 'Otros medios'
+      MEDIA_TYPE:
+        AUDIO: 'Audio'
+        DOCUMENT: 'Documento'
+        EPUB: 'EPUB'
+        PDF: 'PDF'
+        VIDEO: 'Video'
+      MISSING_MEDIA_TITLE: '¡Faltan los medios!'
+      MISSING_MEDIA_TEXT: '¡Algo salió mal! ¡Faltan los medios!'
+      RECOMMENDED_TITLE: 'Para ti'
+      RECOMMENDED_TEXT: 'Recomendada'
+      UNSUPPORTED_TEXT: 'Lo sentimos, su navegador no admite videos.'

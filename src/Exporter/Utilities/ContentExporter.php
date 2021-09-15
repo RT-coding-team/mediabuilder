@@ -131,10 +131,11 @@ class ContentExporter
     /**
      * Start a new locale which sets up the required folder structure
      *
-     * @param  string $locale The locale
+     * @param   string  $locale The locale
+     * @param   array   $interface  The data stored in the interface file
      * @return void
      */
-    public function startLocale($locale = 'en')
+    public function startLocale($locale = 'en', $interface = [])
     {
         $this->log('Start Locale: ' . $locale);
         $this->currentLocale = $locale;
@@ -149,6 +150,10 @@ class ContentExporter
         if (!file_exists($this->directories['export_data'])) {
             mkdir($this->directories['export_data']);
         }
+        // Write the interface file
+        $interfacePath = Path::join($this->directories['export_data'], 'interface.json');
+        file_put_contents($interfacePath, json_encode($interface, \JSON_UNESCAPED_UNICODE));
+
         $this->directories['export_images'] = Path::join($this->directories['locale_root'], 'images');
         if (!file_exists($this->directories['export_images'])) {
             mkdir($this->directories['export_images']);
