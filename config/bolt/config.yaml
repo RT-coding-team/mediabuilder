@@ -219,3 +219,12 @@ exporter:
   public_path: "/files/exports/"
   file_prefix: "export"
   file_date_suffix: "m-d-Y-H-i"
+  supported_languages:
+    - text: English
+      bolt_locale_code: en
+      codes: ['en-US', 'en']
+      default: true
+    - text: Español
+      bolt_locale_code: es
+      codes: ['es']
+      default: false

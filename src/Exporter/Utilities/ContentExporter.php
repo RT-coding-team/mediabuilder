@@ -3,6 +3,7 @@ namespace App\Exporter\Utilities;
 
 use App\Exporter\ExporterDefaults;
 use App\Exporter\Models\Collection;
+use App\Exporter\Models\Language;
 use App\Exporter\Models\Single;
 use App\Exporter\Utilities\ExtendedZip;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -13,6 +14,14 @@ use Webmozart\PathUtil\Path;
  */
 class ContentExporter
 {
+
+    /**
+     * The current locale
+     *
+     * @var string
+     * @access private
+     */
+    private $currentLocale = 'en';
 
     /**
      * The directory where exports are stored.
@@ -52,6 +61,14 @@ class ContentExporter
     private $mainData = [];
 
     /**
+     * The language data saved to the languages.json
+     *
+     * @var array
+     * @access private
+     */
+    private $languageData = [];
+
+    /**
      * An output interface to printing progress
      *
      * @var OutputInterface
@@ -87,16 +104,13 @@ class ContentExporter
     /**
      * Start the export process.
      *
-     * @param   string  $locale             The locale we are working with (default: en)
      * @param   string  $filePrefix         The name to append to the archive (default: ExporterDefaults::FILE_PREFIX)
      * @param   string  $fileDateSuffix     A date format to append to the end of the archive (default: ExporterDefaults::FILE_DATE_SUFFIX)
      * @return void
      *
      * @link https://www.php.net/manual/en/datetime.format.php
      */
-    public function start(
-        $locale = 'en',
-        string $filePrefix = ExporterDefaults::FILE_PREFIX,
+    public function start(string $filePrefix = ExporterDefaults::FILE_PREFIX,
         string $fileDateSuffix = ExporterDefaults::FILE_DATE_SUFFIX
     )
     {
@@ -111,7 +125,6 @@ class ContentExporter
         if (!file_exists($this->directories['export_root'])) {
             mkdir($this->directories['export_root'], 0777, true);
         }
-        $this->startLocale($locale);
         $this->log('Setup complete.');
     }
 
@@ -124,10 +137,11 @@ class ContentExporter
     public function startLocale($locale = 'en')
     {
         $this->log('Start Locale: ' . $locale);
-        if (!in_array($locale, $this->providedLocales)) {
-            $this->providedLocales[] = $locale;
+        $this->currentLocale = $locale;
+        if (!in_array($this->currentLocale, $this->providedLocales)) {
+            $this->providedLocales[] = $this->currentLocale;
         }
-        $this->directories['locale_root'] = Path::join($this->directories['export_root'], $locale);
+        $this->directories['locale_root'] = Path::join($this->directories['export_root'], $this->currentLocale);
         if (!file_exists($this->directories['locale_root'])) {
             mkdir($this->directories['locale_root'], 0777, true);
         }
@@ -172,7 +186,7 @@ class ContentExporter
         }
         $this->log('Creating data file: ' . $clone->slug . '.json');
         $dataFilePath = Path::join($this->directories['export_data'], $clone->slug . '.json');
-        file_put_contents($dataFilePath, json_encode($clone));
+        file_put_contents($dataFilePath, json_encode($clone, \JSON_UNESCAPED_UNICODE));
         // Store files
         $this->log('Copying file: ' . $collection->image);
         copy($collection->localImage, Path::join($this->directories['export_images'], $collection->image));
@@ -185,6 +199,25 @@ class ContentExporter
         }
         $this->mainData['content'][] = $mainClone;
         $this->log('Collection added!');
+    }
+
+    /**
+     * Add a supported language
+     *
+     * @param Language $language The language to add
+     */
+    public function addLanguage(Language $language)
+    {
+        $exists = false;
+        foreach ($this->languageData as $lang) {
+            if ($lang->text === $language->text) {
+                $exists = true;
+            }
+        }
+        if ($exists) {
+            return;
+        }
+        $this->languageData[] = $language;
     }
 
     /**
@@ -204,7 +237,7 @@ class ContentExporter
         }
         $this->log('Creating data file: ' . $clone->slug . '.json');
         $dataFilePath = Path::join($this->directories['export_data'], $clone->slug . '.json');
-        file_put_contents($dataFilePath, json_encode($clone));
+        file_put_contents($dataFilePath, json_encode($clone, \JSON_UNESCAPED_UNICODE));
         // Store files
         $this->log('Copying file: ' . $single->image);
         copy($single->localImage, Path::join($this->directories['export_images'], $single->image));
@@ -216,6 +249,20 @@ class ContentExporter
     }
 
     /**
+     * Finish the locale
+     *
+     * @return void
+     */
+    public function finishLocale()
+    {
+        $this->log('Completing the current locale: ' . $this->currentLocale);
+        $this->log('Creating data file: main.json');
+        $mainPath = Path::join($this->directories['export_data'], 'main.json');
+        file_put_contents($mainPath, json_encode($this->mainData, \JSON_UNESCAPED_UNICODE));
+        $this->log('Locale completed.');
+    }
+
+    /**
      * Finish up the exporting
      *
      * @return void
@@ -223,9 +270,9 @@ class ContentExporter
     public function finish()
     {
         $this->log('Completing export!');
-        $this->log('Creating data file: main.json');
-        $mainPath = Path::join($this->directories['export_data'], 'main.json');
-        file_put_contents($mainPath, json_encode($this->mainData));
+        $this->log('Creating languages file: languages.json');
+        $langPath = Path::join($this->directories['export_root'], 'languages.json');
+        file_put_contents($langPath, json_encode($this->languageData, \JSON_UNESCAPED_UNICODE));
         $this->log('Zipping up the archive.');
         ExtendedZip::zipTree(
             $this->directories['export_root'],

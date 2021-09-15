@@ -25,4 +25,18 @@ class ExporterDefaults
      * @link https://www.php.net/manual/en/datetime.format.php
      */
     public const FILE_DATE_SUFFIX = 'm-d-Y-H-i';
+
+    /**
+     * The default supported languages
+     *
+     * @var array
+     */
+    public const SUPPORTED_LANGUAGES = [
+        [
+            'text'              =>  'English',
+            'bolt_locale_code'  =>  'en',
+            'codes'             =>  ['en-US', 'en'],
+            'default'           =>  true
+        ]
+    ];
 }

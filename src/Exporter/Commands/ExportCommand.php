@@ -2,6 +2,7 @@
 namespace App\Exporter\Commands;
 
 use App\Exporter\ExporterDefaults;
+use App\Exporter\Models\Language;
 use App\Exporter\Stores\CollectionsStore;
 use App\Exporter\Stores\SinglesStore;
 use App\Exporter\Utilities\ContentExporter;
@@ -15,9 +16,6 @@ use Webmozart\PathUtil\Path;
 
 /**
  * A command to export the content to the MM Interface
- *
- * TODO: Handle all the locales. Can we get the supported locals dynamically
- * TODO: Handle languges.json file
  */
 class ExportCommand extends Command
 {
@@ -128,8 +126,13 @@ class ExportCommand extends Command
     {
         set_time_limit(0);
         $this->contentExporter->setOutput($output);
-        $this->export($output);
-        return Command::SUCCESS;
+        try {
+            $this->export($output);
+            return Command::SUCCESS;
+        } catch (\Exception $e) {
+            $this->output->writeln($e->getMessage());
+            return Command::FAILURE;
+        }
     }
 
     /**
@@ -148,15 +151,32 @@ class ExportCommand extends Command
         if (!$fileDateSuffix) {
             $fileDateSuffix = ExporterDefaults::FILE_DATE_SUFFIX;
         }
-        $this->contentExporter->start('en', $filePrefix, $fileDateSuffix);
-        $collections = $this->collectionsStore->findAll();
-        foreach ($collections as $collection) {
-            $this->contentExporter->addCollection($collection);
+        $supported = $this->siteConfig->get('general/exporter/supported_languages');
+        if ($supported) {
+            $supported = $supported->toArray();
+        } else {
+            $supported = ExporterDefaults::SUPPORTED_LANGUAGES;
         }
-        $singles = $this->singlesStore->findAll();
-        $this->contentExporter->addSingle($singles[0]);
-        foreach ($singles as $single) {
-            $this->contentExporter->addSingle($single);
+        $this->contentExporter->start($filePrefix, $fileDateSuffix);
+        foreach ($supported as $lang) {
+            $language = new Language(
+                $lang['codes'],
+                $lang['text'],
+                boolval($lang['default'])
+            );
+            // Add the language
+
+            $this->contentExporter->startLocale($lang['bolt_locale_code']);
+            $this->contentExporter->addLanguage($language);
+            $collections = $this->collectionsStore->findAll($lang['bolt_locale_code']);
+            foreach ($collections as $collection) {
+                $this->contentExporter->addCollection($collection);
+            }
+            $singles = $this->singlesStore->findAll($lang['bolt_locale_code']);
+            foreach ($singles as $single) {
+                $this->contentExporter->addSingle($single);
+            }
+            $this->contentExporter->finishLocale();
         }
         $this->contentExporter->finish();
     }
