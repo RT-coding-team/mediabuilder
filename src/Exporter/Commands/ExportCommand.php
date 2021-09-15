@@ -5,8 +5,8 @@ use App\Exporter\ExporterDefaults;
 use App\Exporter\Models\Language;
 use App\Exporter\Stores\CollectionsStore;
 use App\Exporter\Stores\SinglesStore;
+use App\Exporter\Utilities\Config;
 use App\Exporter\Utilities\ContentExporter;
-use Bolt\Configuration\Config;
 use Bolt\Repository\ContentRepository;
 use Bolt\Repository\RelationRepository;
 use Symfony\Component\Console\Command\Command;
@@ -26,6 +26,13 @@ class ExportCommand extends Command
      * @var string
      */
     protected static $defaultName = 'exporter:export';
+
+    /**
+     * Our configuration class
+     *
+     * @var Config
+     */
+    private $config = null;
 
     /**
      * Our collections store
@@ -62,27 +69,19 @@ class ExportCommand extends Command
     private $singlesStore = null;
 
     /**
-     * The configuration class
-     *
-     * @var Config
-     */
-    private $siteConfig = null;
-
-    /**
      * Build the class
      *
      * @param ContentRepository         $contentRepository      The content repository
      * @param RelationRepository        $relationRepository     The relation repository
      */
     public function __construct(
-        Config $config,
         ContentRepository $contentRepository,
         RelationRepository $relationRepository
     )
     {
         parent::__construct();
-        $this->siteConfig = $config;
-        $publicPath = $this->siteConfig->get('general/exporter/public_path');
+        $this->config = new Config();
+        $publicPath = $this->config->get('exporter/public_path');
         if (!$publicPath) {
             $publicPath = ExporterDefaults::PUBLIC_PATH;
         }
@@ -143,18 +142,16 @@ class ExportCommand extends Command
      */
     private function export(OutputInterface $output): void
     {
-        $filePrefix = $this->siteConfig->get('general/exporter/file_prefix');
+        $filePrefix = $this->config->get('exporter/file_prefix');
         if (!$filePrefix) {
             $filePrefix = ExporterDefaults::FILE_PREFIX;
         }
-        $fileDateSuffix = $this->siteConfig->get('general/exporter/file_date_suffix');
+        $fileDateSuffix = $this->config->get('exporter/file_date_suffix');
         if (!$fileDateSuffix) {
             $fileDateSuffix = ExporterDefaults::FILE_DATE_SUFFIX;
         }
-        $supported = $this->siteConfig->get('general/exporter/supported_languages');
-        if ($supported) {
-            $supported = $supported->toArray();
-        } else {
+        $supported = $this->config->get('exporter/supported_languages');
+        if (!$supported) {
             $supported = ExporterDefaults::SUPPORTED_LANGUAGES;
         }
         $this->contentExporter->start($filePrefix, $fileDateSuffix);

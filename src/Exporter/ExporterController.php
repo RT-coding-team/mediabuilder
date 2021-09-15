@@ -2,8 +2,8 @@
 namespace App\Exporter;
 
 use App\Exporter\ExporterDefaults;
+use App\Exporter\Utilities\Config;
 use Symfony\Component\Routing\Annotation\Route;
-use Bolt\Configuration\Config;
 use Bolt\Controller\Backend\BackendZoneInterface;
 use Bolt\Controller\TwigAwareController;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,20 +15,19 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
 {
 
     /**
-     * The configuration class
+     * Our configuration class
      *
      * @var Config
      */
-    private $siteConfig = null;
+    private $exporterConfig = null;
 
     /**
      * Build the class
      *
-     * @param Config $config The configuration class
      */
-    public function __construct(Config $config)
+    public function __construct()
     {
-        $this->siteConfig = $config;
+        $this->exporterConfig = new Config();
     }
 
     /**
@@ -36,10 +35,7 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
      */
     public function manage(): Response
     {
-        $publicPath = $this->siteConfig->get('general/exporter/public_path');
-        if (!$publicPath) {
-            $publicPath = ExporterDefaults::PUBLIC_PATH;
-        }
+        $publicPath = $this->exporterConfig->get('exporter/public_path');
         return $this->render('backend/exporter/index.twig', []);
     }
 
