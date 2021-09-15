@@ -1,69 +1,35 @@
 <?php
 namespace App\Exporter\Stores;
 
+use App\Exporter\Stores\BaseStore;
 use App\Exporter\Models\Collection;
 use App\Exporter\Models\Episode;
 use Bolt\Entity\Content;
 use Bolt\Enum\Statuses;
-use Bolt\Repository\ContentRepository;
-use Bolt\Repository\RelationRepository;
-use Webmozart\PathUtil\Path;
 
 /**
  * A data store for collections
  */
-class CollectionsStore
+class CollectionsStore extends BaseStore
 {
-
-    /**
-     * The repository for retrieving content
-     *
-     * @var ContentRepository
-     */
-    private $contentRepository = null;
-
-    /**
-     * The directory for public files
-     *
-     * @var string
-     */
-    private $publicDirectory = '';
-
-    /**
-     * The repository for retrieving related items
-     * @var ContentRepository
-     */
-    private $relationRepository;
-
-    public function __construct(
-        ContentRepository $contentRepository,
-        RelationRepository $relationRepository,
-        string $publicDirectory
-    )
-    {
-        if (!file_exists($publicDirectory)) {
-            throw new \InvalidArgumentException('The public directory does not exist!');
-        }
-        $this->contentRepository = $contentRepository;
-        $this->relationRepository = $relationRepository;
-        $this->publicDir = $publicDirectory;
-    }
 
     /**
      * Find all Collections
      *
-     * @return array An array of collections
+     * @param   string          $locale     The locale to get content for (default: en)
+     * @return  Array<Collection>           An array of collections
      */
-    public function findAll(): array
+    public function findAll($locale = 'en'): array
     {
         $collections = [];
+        $this->currentLocale = $locale;
         $query = $this->contentRepository->findBy([
             'contentType'   =>  'collections',
             'status'        =>  Statuses::PUBLISHED
         ]);
         foreach ($query as $data) {
             $collection = $this->buildCollection($data);
-            if ($collection) {
+            if (($collection) && (count($collection->episodes) > 0)) {
                 $collections[] = $collection;
             }
         }
@@ -87,8 +53,8 @@ class CollectionsStore
         $recommended = ($recommendedValue == 'yes') ? true : false;
         $collection = new Collection(
             $content->getSlug(),
-            $content->getFieldValue('title'),
-            $content->getFieldValue('description'),
+            $this->getTranslatedValue($content, 'title'),
+            $this->getTranslatedValue($content, 'description'),
             $this->getMediaType($content),
             $localImagePath,
             $recommended
@@ -100,14 +66,36 @@ class CollectionsStore
         $categoryRelations = $this->relationRepository->findRelations($content, 'categories');
         if ($categoryRelations) {
             foreach ($categoryRelations as $related) {
-                $category = $related->getToContent();
-                $collection->addCategory($category->getFieldValue('name'));
+                $relatedContent = $related->getToContent();
+                if ($relatedContent->getContentType() !== 'categories') {
+                    /**
+                     * Found a bug where getToContent() may return the collection. We need to check the from content.
+                     */
+                    $relatedContent = $related->getFromContent();
+                    if ($relatedContent->getContentType() !== 'categories') {
+                        continue;
+                    }
+                }
+                if (!$this->hasTranslatedField($relatedContent, 'name')) {
+                    continue;
+                }
+                $collection->addCategory($this->getTranslatedValue($relatedContent, 'name'));
             }
         }
         $episodeRelations = $this->relationRepository->findRelations($content, 'episodes');
         if ($episodeRelations) {
             foreach ($episodeRelations as $related) {
-                $episode = $this->buildEpisode($related->getToContent());
+                $relatedContent = $related->getToContent();
+                if ($relatedContent->getContentType() !== 'episodes') {
+                    /**
+                     * Found a bug where getToContent() may return the collection. We need to check the from content.
+                     */
+                    $relatedContent = $related->getFromContent();
+                    if ($relatedContent->getContentType() !== 'episodes') {
+                        continue;
+                    }
+                }
+                $episode = $this->buildEpisode($relatedContent);
                 if ($episode) {
                     $collection->addEpisode($episode);
                 }
@@ -120,20 +108,20 @@ class CollectionsStore
      * Build a single episode.
      *
      * @param  Content $content The episode content
-     * @return Episode          The episode
+     * @return Episode          The episode|null
      * @access private
      */
-    private function buildEpisode(Content $content): Episode
+    private function buildEpisode(Content $content)
     {
-        if (!$content) {
+        if ((!$content) || (!$this->hasTranslation($content))) {
             return null;
         }
         $localImagePath = $this->getFileFieldPublicPath($content, 'image');
         $localFilePath = $this->getFileFieldPublicPath($content, 'file');
         $episode = new Episode(
             $content->getSlug(),
-            $content->getFieldValue('title'),
-            $content->getFieldValue('description'),
+            $this->getTranslatedValue($content, 'title'),
+            $this->getTranslatedValue($content, 'description'),
             $this->getMediaType($content),
             $localFilePath,
             $localImagePath
@@ -145,34 +133,4 @@ class CollectionsStore
         return $episode;
     }
 
-    /**
-     * Get the public file for a file field
-     *
-     * @param  Content $content   The content
-     * @param  string  $fieldName The field name
-     * @return string             The path to the public file
-     * @access private
-     */
-    private function getFileFieldPublicPath(Content $content, string $fieldName): string
-    {
-        $file = $content->getFieldValue($fieldName);
-        return Path::join($this->publicDir, $file['path']);
-    }
-
-    /**
-     * get the media type
-     *
-     * @param  Content $content The content
-     * @return string           The type of media
-     * @access private
-     */
-    private function getMediaType(Content $content): string
-    {
-        $mediaTypes = $content->getTaxonomies('media_type');
-        $mediaType = 'other';
-        if (count($mediaTypes) > 0) {
-            $mediaType = $mediaTypes[0]->getName();
-        }
-        return $mediaType;
-    }
 }

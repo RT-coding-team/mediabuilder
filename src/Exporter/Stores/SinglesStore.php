@@ -2,59 +2,25 @@
 namespace App\Exporter\Stores;
 
 use App\Exporter\Models\Single;
+use App\Exporter\Stores\BaseStore;
 use Bolt\Entity\Content;
 use Bolt\Enum\Statuses;
-use Bolt\Repository\ContentRepository;
-use Bolt\Repository\RelationRepository;
-use Webmozart\PathUtil\Path;
 
 /**
  * A data store for singles.
  */
-class SinglesStore
+class SinglesStore extends BaseStore
 {
-    /**
-     * The repository for retrieving content
-     *
-     * @var ContentRepository
-     */
-    private $contentRepository = null;
-
-    /**
-     * The directory for public files
-     *
-     * @var string
-     */
-    private $publicDirectory = '';
-
-    /**
-     * The repository for retrieving related items
-     * @var ContentRepository
-     */
-    private $relationRepository;
-
-    public function __construct(
-        ContentRepository $contentRepository,
-        RelationRepository $relationRepository,
-        string $publicDirectory
-    )
-    {
-        if (!file_exists($publicDirectory)) {
-            throw new \InvalidArgumentException('The public directory does not exist!');
-        }
-        $this->contentRepository = $contentRepository;
-        $this->relationRepository = $relationRepository;
-        $this->publicDir = $publicDirectory;
-    }
-
     /**
      * Find all singles
      *
-     * @return Array<Single>    An array of singles
+     * @param   string          $locale     The locale to get content for (default: en)
+     * @return  Array<Single>               An array of singles
      */
-    public function findAll(): array
+    public function findAll($locale = 'en'): array
     {
         $singles = [];
+        $this->currentLocale = $locale;
         $query = $this->contentRepository->findBy([
             'contentType'   =>  'singles',
             'status'        =>  Statuses::PUBLISHED
@@ -72,12 +38,12 @@ class SinglesStore
      * Build a single
      *
      * @param  Content $content The content object
-     * @return Single           The single
+     * @return Single           The single|null if not Translatable
      * @access private
      */
-    private function buildSingle(Content $content): Single
+    private function buildSingle(Content $content)
     {
-        if (!$content) {
+        if ((!$content) || (!$this->hasTranslation($content))) {
             return null;
         }
         $recommendedValue = $content->getFieldValue('recommended');
@@ -86,8 +52,8 @@ class SinglesStore
         $localFilePath = $this->getFileFieldPublicPath($content, 'file');
         $single = new Single(
             $content->getSlug(),
-            $content->getFieldValue('title'),
-            $content->getFieldValue('description'),
+            $this->getTranslatedValue($content, 'title'),
+            $this->getTranslatedValue($content, 'description'),
             $this->getMediaType($content),
             $localFilePath,
             $localImagePath,
@@ -100,41 +66,23 @@ class SinglesStore
         $categoryRelations = $this->relationRepository->findRelations($content, 'categories');
         if ($categoryRelations) {
             foreach ($categoryRelations as $related) {
-                $category = $related->getToContent();
-                $single->addCategory($category->getFieldValue('name'));
+                $relatedContent = $related->getToContent();
+                if ($relatedContent->getContentType() !== 'categories') {
+                    /**
+                     * Found a bug where getToContent() may return the collection. We need to check the from content.
+                     */
+                    $relatedContent = $related->getFromContent();
+                    if ($relatedContent->getContentType() !== 'categories') {
+                        continue;
+                    }
+                }
+                if (!$this->hasTranslatedField($relatedContent, 'name')) {
+                    continue;
+                }
+                $single->addCategory($this->getTranslatedValue($relatedContent, 'name'));
             }
         }
         return $single;
     }
 
-    /**
-     * Get the public file for a file field
-     *
-     * @param  Content $content   The content
-     * @param  string  $fieldName The field name
-     * @return string             The path to the public file
-     * @access private
-     */
-    private function getFileFieldPublicPath(Content $content, string $fieldName): string
-    {
-        $file = $content->getFieldValue($fieldName);
-        return Path::join($this->publicDir, $file['path']);
-    }
-
-    /**
-     * get the media type
-     *
-     * @param  Content $content The content
-     * @return string           The type of media
-     * @access private
-     */
-    private function getMediaType(Content $content): string
-    {
-        $mediaTypes = $content->getTaxonomies('media_type');
-        $mediaType = 'other';
-        if (count($mediaTypes) > 0) {
-            $mediaType = $mediaTypes[0]->getName();
-        }
-        return $mediaType;
-    }
 }
