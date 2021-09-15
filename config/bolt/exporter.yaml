@@ -2,6 +2,9 @@
 # public_path: The path in the public directory where we store exports
 # file_prefix: The prefix used for all file archives
 # file_date_suffix: A date suffix appended to all file archives. See https://www.php.net/manual/en/datetime.format.php
+# supported_languages: All languages supported by the Media Interface
+# interface: The interface translations for the Media Interface.  Duplicate the en for each supported lang.  Use the bolt_locale_code
+# for the key of each language
 exporter:
   public_path: "/files/exports/"
   file_prefix: "export"
