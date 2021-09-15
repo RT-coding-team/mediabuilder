@@ -259,6 +259,7 @@ class ContentExporter
         $this->log('Creating data file: main.json');
         $mainPath = Path::join($this->directories['export_data'], 'main.json');
         file_put_contents($mainPath, json_encode($this->mainData, \JSON_UNESCAPED_UNICODE));
+        $this->mainData = [];
         $this->log('Locale completed.');
     }
 
