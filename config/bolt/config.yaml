@@ -210,21 +210,3 @@ reset_password_settings:
     mail_name: "Bolt CMS"
     mail_subject: "Your password reset request"
     mail_template: "reset_password/email.html.twig"
-
-# Custom settings for our exporter
-# public_path: The path in the public directory where we store exports
-# file_prefix: The prefix used for all file archives
-# file_date_suffix: A date suffix appended to all file archives. See https://www.php.net/manual/en/datetime.format.php
-exporter:
-  public_path: "/files/exports/"
-  file_prefix: "export"
-  file_date_suffix: "m-d-Y-H-i"
-  supported_languages:
-    - text: English
-      bolt_locale_code: en
-      codes: ['en-US', 'en']
-      default: true
-    - text: Español
-      bolt_locale_code: es
-      codes: ['es']
-      default: false
