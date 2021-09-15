@@ -163,7 +163,7 @@ class ExportCommand extends Command
             );
             $interface = $this->config->get('exporter/interface/' . $lang['bolt_locale_code']);
             if (!$interface) {
-                $interface = [];
+                $interface = $this->config->get('exporter/interface/en');
             }
             $this->contentExporter->startLocale($lang['bolt_locale_code'], $interface);
             $this->contentExporter->addLanguage($language);
