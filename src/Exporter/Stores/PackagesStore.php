@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace App\Exporter\Stores;
 
 use App\Exporter\Models\Package;
@@ -13,32 +16,30 @@ class PackagesStore
      * The repository for retrieving taxonomy
      *
      * @var TaxonomyRepository
-     * @access protected
      */
     protected $taxonomyRepository = null;
 
     /**
      * Build the store
      *
-     * @param TaxonomyRepository  $taxonomyRepository  Bolt's Taxonomy Repository
+     * @param TaxonomyRepository $taxonomyRepository Bolt's Taxonomy Repository
      */
     public function __construct(
         TaxonomyRepository $taxonomyRepository
-    )
-    {
+    ) {
         $this->taxonomyRepository = $taxonomyRepository;
     }
 
     /**
      * Find all packages.
      *
-     * @return Array<Package>   An array of packages.
+     * @return array an array of packages
      */
     public function findAll(): array
     {
         $packages = [];
         $query = $this->taxonomyRepository->findBy([
-            'type'   =>  'packages'
+            'type' => 'packages',
         ]);
         foreach ($query as $data) {
             $packages[] = new Package(
@@ -46,6 +47,7 @@ class PackagesStore
                 $data->getName()
             );
         }
+
         return $packages;
     }
 }

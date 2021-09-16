@@ -1,11 +1,13 @@
 <?php
+
+declare(strict_types=1);
+
 namespace App\Exporter\Utilities;
 
 use App\Exporter\ExporterDefaults;
 use App\Exporter\Models\Collection;
 use App\Exporter\Models\Language;
 use App\Exporter\Models\Single;
-use App\Exporter\Utilities\ExtendedZip;
 use Symfony\Component\Console\Output\OutputInterface;
 use Webmozart\PathUtil\Path;
 
@@ -14,12 +16,10 @@ use Webmozart\PathUtil\Path;
  */
 class ContentExporter
 {
-
     /**
      * The current locale
      *
      * @var string
-     * @access private
      */
     private $currentLocale = 'en';
 
@@ -34,7 +34,6 @@ class ContentExporter
      * The name of the file we are working on.
      *
      * @var string
-     * @access private
      */
     private $exportFilename = '';
 
@@ -42,21 +41,19 @@ class ContentExporter
      * The directories we use for exporting
      *
      * @var array
-     * @access private
      */
     private $directories = [
-        'export_root'   =>  '',
-        'locale_root'   =>  '',
-        'export_data'   =>  '',
-        'export_images' =>  '',
-        'export_media'  =>  '',
+        'export_root' => '',
+        'locale_root' => '',
+        'export_data' => '',
+        'export_images' => '',
+        'export_media' => '',
     ];
 
     /**
      * The main data for main.json
      *
      * @var array
-     * @access private
      */
     private $mainData = [];
 
@@ -64,7 +61,6 @@ class ContentExporter
      * The language data saved to the languages.json
      *
      * @var array
-     * @access private
      */
     private $languageData = [];
 
@@ -79,13 +75,17 @@ class ContentExporter
      * An array of locales provided by the user
      *
      * @var array
-     * @access private
      */
     private $providedLocales = [];
 
+    /**
+     * Build the exporter
+     *
+     * @param string $exportsDir The exports directory
+     */
     public function __construct(string $exportsDir)
     {
-        if (!file_exists($exportsDir)) {
+        if (! file_exists($exportsDir)) {
             throw new \InvalidArgumentException('The exports directory does not exist!');
         }
         $this->exportsDir = $exportsDir;
@@ -96,7 +96,7 @@ class ContentExporter
      *
      * @param OutputInterface $output The interface that conforms to OutputInterface
      */
-    public function setOutput(OutputInterface $output)
+    public function setOutput(OutputInterface $output): void
     {
         $this->output = $output;
     }
@@ -104,28 +104,26 @@ class ContentExporter
     /**
      * Start the export process.
      *
-     * @param   string  $itemName           The item name for this export
-     * @param   string  $filePrefix         The name to append to the archive
-     * @param   string  $fileDateSuffix     A date format to append to the end of the archive (default: ExporterDefaults::FILE_DATE_SUFFIX)
-     * @return void
+     * @param string $itemName The item name for this export
+     * @param string $filePrefix The name to append to the archive
+     * @param string $fileDateSuffix A date format to append to the end of the archive (default: ExporterDefaults::FILE_DATE_SUFFIX)
      *
-     * @link https://www.php.net/manual/en/datetime.format.php
+     * @see https://www.php.net/manual/en/datetime.format.php
      */
     public function start(
         string $itemName,
         string $filePrefix,
         string $fileDateSuffix = ExporterDefaults::FILE_DATE_SUFFIX
-    )
-    {
+    ): void {
         $this->log('Export started!');
         $today = new \DateTime();
         $this->mainData = [
-            'itemName'  =>  $itemName,
-            'content'   =>  []
+            'itemName' => $itemName,
+            'content' => [],
         ];
-        $this->exportFilename = $filePrefix . '-' . $today->format($fileDateSuffix);
+        $this->exportFilename = $filePrefix.'-'.$today->format($fileDateSuffix);
         $this->directories['export_root'] = Path::join($this->exportsDir, $this->exportFilename);
-        if (!file_exists($this->directories['export_root'])) {
+        if (! file_exists($this->directories['export_root'])) {
             mkdir($this->directories['export_root'], 0777, true);
         }
         $this->log('Setup complete.');
@@ -134,23 +132,22 @@ class ContentExporter
     /**
      * Start a new locale which sets up the required folder structure
      *
-     * @param   string  $locale The locale
-     * @param   array   $interface  The data stored in the interface file
-     * @return void
+     * @param string $locale The locale
+     * @param array $interface The data stored in the interface file
      */
-    public function startLocale($locale = 'en', $interface = [])
+    public function startLocale($locale = 'en', $interface = []): void
     {
-        $this->log('Start Locale: ' . $locale);
+        $this->log('Start Locale: '.$locale);
         $this->currentLocale = $locale;
-        if (!in_array($this->currentLocale, $this->providedLocales)) {
+        if (! \in_array($this->currentLocale, $this->providedLocales, true)) {
             $this->providedLocales[] = $this->currentLocale;
         }
         $this->directories['locale_root'] = Path::join($this->directories['export_root'], $this->currentLocale);
-        if (!file_exists($this->directories['locale_root'])) {
+        if (! file_exists($this->directories['locale_root'])) {
             mkdir($this->directories['locale_root'], 0777, true);
         }
         $this->directories['export_data'] = Path::join($this->directories['locale_root'], 'data');
-        if (!file_exists($this->directories['export_data'])) {
+        if (! file_exists($this->directories['export_data'])) {
             mkdir($this->directories['export_data']);
         }
         // Write the interface file
@@ -158,11 +155,11 @@ class ContentExporter
         file_put_contents($interfacePath, json_encode($interface, \JSON_UNESCAPED_UNICODE));
 
         $this->directories['export_images'] = Path::join($this->directories['locale_root'], 'images');
-        if (!file_exists($this->directories['export_images'])) {
+        if (! file_exists($this->directories['export_images'])) {
             mkdir($this->directories['export_images']);
         }
         $this->directories['export_media'] = Path::join($this->directories['locale_root'], 'media');
-        if (!file_exists($this->directories['export_media'])) {
+        if (! file_exists($this->directories['export_media'])) {
             mkdir($this->directories['export_media']);
         }
         $this->log('Locale set up.');
@@ -173,36 +170,36 @@ class ContentExporter
      *
      * @param Collection $collection The collection to add
      */
-    public function addCollection(Collection $collection)
+    public function addCollection(Collection $collection): void
     {
         // Add data file
-        $this->log('Adding a new collection: ' . $collection->title);
+        $this->log('Adding a new collection: '.$collection->title);
         $clone = clone $collection;
         unset($clone->localImage);
-        if (!$clone->recommended) {
+        if (! $clone->recommended) {
             unset($clone->recommended);
         }
         foreach ($clone->episodes as $episode) {
             // Store episode files
-            $this->log('Adding a new episode: ' . $episode->title);
-            $this->log('Copying file: ' . $episode->image);
+            $this->log('Adding a new episode: '.$episode->title);
+            $this->log('Copying file: '.$episode->image);
             copy($episode->localImage, Path::join($this->directories['export_images'], $episode->image));
-            $this->log('Copying file: ' . $episode->filename);
+            $this->log('Copying file: '.$episode->filename);
             copy($episode->localFilename, Path::join($this->directories['export_media'], $episode->filename));
             unset($episode->localImage);
             unset($episode->localFilename);
         }
-        $this->log('Creating data file: ' . $clone->slug . '.json');
-        $dataFilePath = Path::join($this->directories['export_data'], $clone->slug . '.json');
+        $this->log('Creating data file: '.$clone->slug.'.json');
+        $dataFilePath = Path::join($this->directories['export_data'], $clone->slug.'.json');
         file_put_contents($dataFilePath, json_encode($clone, \JSON_UNESCAPED_UNICODE));
         // Store files
-        $this->log('Copying file: ' . $collection->image);
+        $this->log('Copying file: '.$collection->image);
         copy($collection->localImage, Path::join($this->directories['export_images'], $collection->image));
         // Add to main data
         $mainClone = clone $collection;
         unset($mainClone->localImage);
         unset($mainClone->episodes);
-        if (!$mainClone->recommended) {
+        if (! $mainClone->recommended) {
             unset($mainClone->recommended);
         }
         $this->mainData['content'][] = $mainClone;
@@ -214,7 +211,7 @@ class ContentExporter
      *
      * @param Language $language The language to add
      */
-    public function addLanguage(Language $language)
+    public function addLanguage(Language $language): void
     {
         $exists = false;
         foreach ($this->languageData as $lang) {
@@ -233,23 +230,23 @@ class ContentExporter
      *
      * @param Single $single The single to add
      */
-    public function addSingle(Single $single)
+    public function addSingle(Single $single): void
     {
         // Add data file
-        $this->log('Adding a new single: ' . $single->title);
+        $this->log('Adding a new single: '.$single->title);
         $clone = clone $single;
         unset($clone->localImage);
         unset($clone->localFilename);
-        if (!$clone->recommended) {
+        if (! $clone->recommended) {
             unset($clone->recommended);
         }
-        $this->log('Creating data file: ' . $clone->slug . '.json');
-        $dataFilePath = Path::join($this->directories['export_data'], $clone->slug . '.json');
+        $this->log('Creating data file: '.$clone->slug.'.json');
+        $dataFilePath = Path::join($this->directories['export_data'], $clone->slug.'.json');
         file_put_contents($dataFilePath, json_encode($clone, \JSON_UNESCAPED_UNICODE));
         // Store files
-        $this->log('Copying file: ' . $single->image);
+        $this->log('Copying file: '.$single->image);
         copy($single->localImage, Path::join($this->directories['export_images'], $single->image));
-        $this->log('Copying file: ' . $single->filename);
+        $this->log('Copying file: '.$single->filename);
         copy($single->localFilename, Path::join($this->directories['export_media'], $single->filename));
         // Add to main data
         $this->mainData['content'][] = $clone;
@@ -258,12 +255,10 @@ class ContentExporter
 
     /**
      * Finish the locale
-     *
-     * @return void
      */
-    public function finishLocale()
+    public function finishLocale(): void
     {
-        $this->log('Completing the current locale: ' . $this->currentLocale);
+        $this->log('Completing the current locale: '.$this->currentLocale);
         $this->log('Creating data file: main.json');
         $mainPath = Path::join($this->directories['export_data'], 'main.json');
         file_put_contents($mainPath, json_encode($this->mainData, \JSON_UNESCAPED_UNICODE));
@@ -273,10 +268,8 @@ class ContentExporter
 
     /**
      * Finish up the exporting
-     *
-     * @return void
      */
-    public function finish()
+    public function finish(): void
     {
         $this->log('Completing export!');
         $this->log('Creating languages file: languages.json');
@@ -285,7 +278,7 @@ class ContentExporter
         $this->log('Zipping up the archive.');
         ExtendedZip::zipTree(
             $this->directories['export_root'],
-            $this->directories['export_root'] . '.zip',
+            $this->directories['export_root'].'.zip',
             \ZipArchive::CREATE,
             'content'
         );
@@ -301,13 +294,11 @@ class ContentExporter
     /**
      * Remove the directory recursuvely.
      *
-     * @param   string  $directory  The directory to remove
-     * @return  void
-     * @access  private
+     * @param string $directory The directory to remove
      */
-    private function removeDirectory(string $directory)
+    private function removeDirectory(string $directory): void
     {
-        if (!file_exists($directory)) {
+        if (! file_exists($directory)) {
             return;
         }
         $files = new \RecursiveIteratorIterator(
@@ -327,14 +318,13 @@ class ContentExporter
     /**
      * Log a message
      *
-     * @param  string $message The message to log
-     * @return void
-     * @access private
+     * @param string $message The message to log
      */
-    private function log(string $message)
+    private function log(string $message): void
     {
-        if (!$this->output) {
-            echo $message . "\r\n";
+        if (! $this->output) {
+            echo $message."\r\n";
+
             return;
         }
         $this->output->writeln($message);

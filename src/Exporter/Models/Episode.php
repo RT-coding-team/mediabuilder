@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace App\Exporter\Models;
 
 /**
@@ -65,7 +68,7 @@ class Episode
     /**
      * An array of tags
      *
-     * @var Array
+     * @var array
      */
     public $tags = [];
 
@@ -76,6 +79,16 @@ class Episode
      */
     public $title = '';
 
+    /**
+     * Build the Episode
+     *
+     * @param string $slug The slug for the Episode
+     * @param string $title The title for the Episode
+     * @param string $desc The description for the Episode
+     * @param string $mediaType The type of media
+     * @param string $localFilename The local file's path
+     * @param string $localImage The local image's path
+     */
     public function __construct(
         string $slug,
         string $title,
@@ -83,12 +96,11 @@ class Episode
         string $mediaType,
         string $localFilename,
         string $localImage
-    )
-    {
-        if (!file_exists($localImage)) {
+    ) {
+        if (! file_exists($localImage)) {
             throw new \InvalidArgumentException('The episode image does not exist!');
         }
-        if (!file_exists($localFilename)) {
+        if (! file_exists($localFilename)) {
             throw new \InvalidArgumentException('The episode file does not exist!');
         }
         $this->slug = $slug;
@@ -107,11 +119,10 @@ class Episode
      *
      * @param string $tag The tag to add
      */
-    public function addTag(string $tag)
+    public function addTag(string $tag): void
     {
-        if (!in_array($tag, $this->tags)) {
+        if (! \in_array($tag, $this->tags, true)) {
             $this->tags[] = $tag;
         }
     }
-
 }

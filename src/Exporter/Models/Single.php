@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace App\Exporter\Models;
 
 /**
@@ -6,7 +9,6 @@ namespace App\Exporter\Models;
  */
 class Single
 {
-
     /**
      * An array of categories (needs to stay public to json serialize correctly)
      *
@@ -66,7 +68,7 @@ class Single
     /**
      * Is it recommended?
      *
-     * @var boolean
+     * @var bool
      */
     public $recommended = false;
 
@@ -95,10 +97,20 @@ class Single
      * An array of packages this single belongs to.
      *
      * @var array
-     * @access private
      */
     private $packages = [];
 
+    /**
+     * Build a Single
+     *
+     * @param string $slug The slug
+     * @param string $title The title
+     * @param string $desc The description
+     * @param string $mediaType The type of media
+     * @param string $localFilename The path to the local file
+     * @param string $localImage The path to the local image
+     * @param bool $recommended Is it recommended? (default: false)
+     */
     public function __construct(
         string $slug,
         string $title,
@@ -107,12 +119,11 @@ class Single
         string $localFilename,
         string $localImage,
         $recommended = false
-    )
-    {
-        if (!file_exists($localImage)) {
+    ) {
+        if (! file_exists($localImage)) {
             throw new \InvalidArgumentException('The single image does not exist!');
         }
-        if (!file_exists($localFilename)) {
+        if (! file_exists($localFilename)) {
             throw new \InvalidArgumentException('The single file does not exist!');
         }
         $this->slug = $slug;
@@ -132,9 +143,9 @@ class Single
      *
      * @param string $category The category to add
      */
-    public function addCategory(string $category)
+    public function addCategory(string $category): void
     {
-        if (!in_array($category, $this->categories)) {
+        if (! \in_array($category, $this->categories, true)) {
             $this->categories[] = $category;
         }
     }
@@ -144,9 +155,9 @@ class Single
      *
      * @param string $package The package slug to add
      */
-    public function addPackage(string $package)
+    public function addPackage(string $package): void
     {
-        if (!in_array($package, $this->packages)) {
+        if (! \in_array($package, $this->packages, true)) {
             $this->packages[] = $package;
         }
     }
@@ -156,9 +167,9 @@ class Single
      *
      * @param string $tag The tag to add
      */
-    public function addTag(string $tag)
+    public function addTag(string $tag): void
     {
-        if (!in_array($tag, $this->tags)) {
+        if (! \in_array($tag, $this->tags, true)) {
             $this->tags[] = $tag;
         }
     }
@@ -166,11 +177,12 @@ class Single
     /**
      * Do we belong to the given package?
      *
-     * @param  string $packageSlug The slug to check
-     * @return bool                yes|no
+     * @param string $packageSlug The slug to check
+     *
+     * @return bool yes|no
      */
     public function belongsTo(string $packageSlug): bool
     {
-        return in_array($packageSlug, $this->packages);
+        return \in_array($packageSlug, $this->packages, true);
     }
 }

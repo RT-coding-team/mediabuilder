@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace App\Exporter;
 
 /**
@@ -16,7 +19,8 @@ class ExporterDefaults
      * A date suffix appended to all file archives.
      *
      * @var string
-     * @link https://www.php.net/manual/en/datetime.format.php
+     *
+     * @see https://www.php.net/manual/en/datetime.format.php
      */
     public const FILE_DATE_SUFFIX = 'm-d-Y-H-i';
 
@@ -27,10 +31,10 @@ class ExporterDefaults
      */
     public const SUPPORTED_LANGUAGES = [
         [
-            'text'              =>  'English',
-            'bolt_locale_code'  =>  'en',
-            'codes'             =>  ['en-US', 'en'],
-            'default'           =>  true
-        ]
+            'text' => 'English',
+            'bolt_locale_code' => 'en',
+            'codes' => ['en-US', 'en'],
+            'default' => true,
+        ],
     ];
 }

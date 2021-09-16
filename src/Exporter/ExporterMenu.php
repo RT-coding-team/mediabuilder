@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Exporter;
 
 use Bolt\Menu\ExtensionBackendMenuInterface;
@@ -36,15 +38,15 @@ class ExporterMenu implements ExtensionBackendMenuInterface
             'extras' => [
                 'name' => 'Interface Exporter',
                 'type' => 'separator',
-            ]
+            ],
         ]);
 
         // This adds the link
         $menu->addChild('Manage', [
-           'uri' => $this->urlGenerator->generate('app_exporter'),
+            'uri' => $this->urlGenerator->generate('app_exporter'),
             'extras' => [
-                'icon' => 'fa-file-export'
-            ]
+                'icon' => 'fa-file-export',
+            ],
         ]);
     }
 }

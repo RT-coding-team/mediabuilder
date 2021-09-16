@@ -1,19 +1,20 @@
 <?php
+
+declare(strict_types=1);
+
 namespace App\Exporter;
 
-use App\Exporter\ExporterDefaults;
 use App\Exporter\Utilities\Config;
-use Symfony\Component\Routing\Annotation\Route;
 use Bolt\Controller\Backend\BackendZoneInterface;
 use Bolt\Controller\TwigAwareController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * The exporter class for exporting the content to MM Interface
  */
 class ExporterController extends TwigAwareController implements BackendZoneInterface
 {
-
     /**
      * Our configuration class
      *
@@ -23,7 +24,6 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
 
     /**
      * Build the class
-     *
      */
     public function __construct()
     {
@@ -36,7 +36,7 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
     public function manage(): Response
     {
         $publicPath = $this->exporterConfig->get('exporter/public_path');
+
         return $this->render('backend/exporter/index.twig', []);
     }
-
 }

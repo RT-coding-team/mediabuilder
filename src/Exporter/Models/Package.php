@@ -1,15 +1,14 @@
 <?php
-namespace App\Exporter\Models;
 
-use App\Exporter\Models\Collection;
-use App\Exporter\Models\Single;
+declare(strict_types=1);
+
+namespace App\Exporter\Models;
 
 /**
  * A package model
  */
 class Package
 {
-
     /**
      * The slug of the package.
      *
@@ -29,7 +28,6 @@ class Package
      * group by language.
      *
      * @var array
-     * @access private
      */
     private $collections = [];
 
@@ -38,7 +36,6 @@ class Package
      * group by language.
      *
      * @var array
-     * @access private
      */
     private $singles = [];
 
@@ -46,15 +43,19 @@ class Package
      * A list of the locales that have either a single or collection.
      *
      * @var array
-     * @access private
      */
     private $supportedLocales = [];
 
+    /**
+     * Build a package
+     *
+     * @param string $slug The package slug
+     * @param string $title The package title
+     */
     public function __construct(
         string $slug,
         string $title
-    )
-    {
+    ) {
         $this->slug = $slug;
         $this->title = $title;
     }
@@ -62,12 +63,12 @@ class Package
     /**
      * Add a collection to this package.
      *
-     * @param string     $localCode  Bolt's locale code
+     * @param string $localCode Bolt's locale code
      * @param Collection $collection The collection to add
      */
-    public function addCollection(string $localCode, Collection $collection)
+    public function addCollection(string $localCode, Collection $collection): void
     {
-        if (!isset($this->collections[$localCode])) {
+        if (! isset($this->collections[$localCode])) {
             $this->collections[$localCode] = [];
             $this->addSupportedLocale($localCode);
         }
@@ -77,12 +78,12 @@ class Package
     /**
      * Add a single to this package.
      *
-     * @param string     $localCode  Bolt's locale code
-     * @param Collection $single    The single to add
+     * @param string $localCode Bolt's locale code
+     * @param Collection $single The single to add
      */
-    public function addSingle(string $localCode, Single $single)
+    public function addSingle(string $localCode, Single $single): void
     {
-        if (!isset($this->singles[$localCode])) {
+        if (! isset($this->singles[$localCode])) {
             $this->singles[$localCode] = [];
             $this->addSupportedLocale($localCode);
         }
@@ -92,8 +93,9 @@ class Package
     /**
      * Get all the collections for a specific locale
      *
-     * @param  string $localCode    Bolt's locale code
-     * @return Array<Collection>    The collections
+     * @param string $localCode Bolt's locale code
+     *
+     * @return array The collections
      */
     public function getCollectionsByLocale(string $localCode): array
     {
@@ -101,14 +103,16 @@ class Package
         if (isset($this->collections[$localCode])) {
             $collections = $this->collections[$localCode];
         }
+
         return $collections;
     }
 
     /**
      * Get all the sgnles for a specific locale
      *
-     * @param  string $localCode    Bolt's locale code
-     * @return Array<Single>        The singles
+     * @param string $localCode Bolt's locale code
+     *
+     * @return array The singles
      */
     public function getSinglesByLocale(string $localCode): array
     {
@@ -116,18 +120,20 @@ class Package
         if (isset($this->singles[$localCode])) {
             $singles = $this->singles[$localCode];
         }
+
         return $singles;
     }
 
     /**
      * Do we have collections and/or singles for this locale?
      *
-     * @param  string $localeCode Bolt's locale code
-     * @return bool               yes|no
+     * @param string $localeCode Bolt's locale code
+     *
+     * @return bool yes|no
      */
     public function hasContentForLocale(string $localeCode): bool
     {
-        return in_array($localeCode, $this->supportedLocales);
+        return \in_array($localeCode, $this->supportedLocales, true);
     }
 
     /**
@@ -137,20 +143,18 @@ class Package
      */
     public function isEmpty(): bool
     {
-        return ((empty($this->collections)) && (empty($this->singles)));
+        return empty($this->collections) && (empty($this->singles));
     }
 
     /**
      * Add to the supported locales if not present already
      *
      * @param string $localeCode Bolt's locale code
-     * @access private
      */
     private function addSupportedLocale(string $localeCode): void
     {
-        if (!in_array($localeCode, $this->supportedLocales)) {
+        if (! \in_array($localeCode, $this->supportedLocales, true)) {
             $this->supportedLocales[] = $localeCode;
         }
     }
-
 }

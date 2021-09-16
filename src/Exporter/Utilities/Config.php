@@ -1,8 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 namespace App\Exporter\Utilities;
 
-use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Yaml\Exception\ParseException;
+use Symfony\Component\Yaml\Yaml;
 use Webmozart\PathUtil\Path;
 
 /**
@@ -22,9 +25,9 @@ class Config
      */
     public function __construct()
     {
-        $configFile = Path::canonicalize(dirname(__DIR__, 3) . '/config/bolt/exporter.yaml');
-        if (!file_exists($configFile)) {
-            throw new \InvalidArgumentException('The configuration file does not exist at ' . $configFile);
+        $configFile = Path::canonicalize(\dirname(__DIR__, 3).'/config/bolt/exporter.yaml');
+        if (! file_exists($configFile)) {
+            throw new \InvalidArgumentException('The configuration file does not exist at '.$configFile);
         }
         try {
             $this->config = Yaml::parseFile($configFile);
@@ -35,8 +38,10 @@ class Config
 
     /**
      * Get the configuration using a path (ie. exporter/file_prefix)
-     * @param  string $path The path to traverse
-     * @return mixed        The value
+     *
+     * @param string $path The path to traverse
+     *
+     * @return mixed The value
      */
     public function get($path)
     {
@@ -49,6 +54,7 @@ class Config
                 $content = null;
             }
         }
+
         return $content;
     }
 }
