@@ -29,6 +29,7 @@ class Package
      * group by language.
      *
      * @var array
+     * @access private
      */
     private $collections = [];
 
@@ -37,8 +38,17 @@ class Package
      * group by language.
      *
      * @var array
+     * @access private
      */
     private $singles = [];
+
+    /**
+     * A list of the locales that have either a single or collection.
+     *
+     * @var array
+     * @access private
+     */
+    private $supportedLocales = [];
 
     public function __construct(
         string $slug,
@@ -59,6 +69,7 @@ class Package
     {
         if (!isset($this->collections[$localCode])) {
             $this->collections[$localCode] = [];
+            $this->addSupportedLocale($localCode);
         }
         $this->collections[$localCode][] = $collection;
     }
@@ -73,6 +84,7 @@ class Package
     {
         if (!isset($this->singles[$localCode])) {
             $this->singles[$localCode] = [];
+            $this->addSupportedLocale($localCode);
         }
         $this->singles[$localCode][] = $single;
     }
@@ -86,7 +98,7 @@ class Package
     public function getCollectionsByLocale(string $localCode): array
     {
         $collections = [];
-        if (!isset($this->collections[$localCode])) {
+        if (isset($this->collections[$localCode])) {
             $collections = $this->collections[$localCode];
         }
         return $collections;
@@ -101,10 +113,21 @@ class Package
     public function getSinglesByLocale(string $localCode): array
     {
         $singles = [];
-        if (!isset($this->singles[$localCode])) {
+        if (isset($this->singles[$localCode])) {
             $singles = $this->singles[$localCode];
         }
         return $singles;
+    }
+
+    /**
+     * Do we have collections and/or singles for this locale?
+     *
+     * @param  string $localeCode Bolt's locale code
+     * @return bool               yes|no
+     */
+    public function hasContentForLocale(string $localeCode): bool
+    {
+        return in_array($localeCode, $this->supportedLocales);
     }
 
     /**
@@ -116,4 +139,18 @@ class Package
     {
         return ((empty($this->collections)) && (empty($this->singles)));
     }
+
+    /**
+     * Add to the supported locales if not present already
+     *
+     * @param string $localeCode Bolt's locale code
+     * @access private
+     */
+    private function addSupportedLocale(string $localeCode): void
+    {
+        if (!in_array($localeCode, $this->supportedLocales)) {
+            $this->supportedLocales[] = $localeCode;
+        }
+    }
+
 }

@@ -104,6 +104,7 @@ class ContentExporter
     /**
      * Start the export process.
      *
+     * @param   string  $itemName           The item name for this export
      * @param   string  $filePrefix         The name to append to the archive
      * @param   string  $fileDateSuffix     A date format to append to the end of the archive (default: ExporterDefaults::FILE_DATE_SUFFIX)
      * @return void
@@ -111,6 +112,7 @@ class ContentExporter
      * @link https://www.php.net/manual/en/datetime.format.php
      */
     public function start(
+        string $itemName,
         string $filePrefix,
         string $fileDateSuffix = ExporterDefaults::FILE_DATE_SUFFIX
     )
@@ -118,7 +120,7 @@ class ContentExporter
         $this->log('Export started!');
         $today = new \DateTime();
         $this->mainData = [
-            'itemName'  =>  'Exported Data',
+            'itemName'  =>  $itemName,
             'content'   =>  []
         ];
         $this->exportFilename = $filePrefix . '-' . $today->format($fileDateSuffix);

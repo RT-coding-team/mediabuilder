@@ -145,7 +145,7 @@ class ExportCommand extends Command
         $this->contentExporter->setOutput($output);
         try {
             $packages = $this->buildPackages($supported);
-            $this->export($packages, $supported);
+            $this->export($output, $packages, $supported);
             return Command::SUCCESS;
         } catch (\Exception $e) {
             $this->output->writeln($e->getMessage());
@@ -163,7 +163,7 @@ class ExportCommand extends Command
     {
         $results = [];
         $packages = $this->packagesStore->findAll();
-        foreach ($packages as $key => $package) {
+        foreach ($packages as $package) {
             foreach ($supported as $lang) {
                 $localeCode = $lang['bolt_locale_code'];
                 $collections = $this->collectionsStore->findAll($localeCode);
@@ -192,17 +192,52 @@ class ExportCommand extends Command
     /**
      * Export the packages
      *
-     * @param array $packages  The packages to export
-     * @param array $supported The supported languages
+     * @param  OutputInterface  $output     The output interface
+     * @param   array           $packages   The packages to export
+     * @param   array           $supported  The supported languages
      * @access private
      */
-    private function export(array $packages, array $supported): void
+    private function export(OutputInterface $output, array $packages, array $supported): void
     {
         $fileDateSuffix = $this->config->get('exporter/file_date_suffix');
         if (!$fileDateSuffix) {
             $fileDateSuffix = ExporterDefaults::FILE_DATE_SUFFIX;
         }
-        
+        foreach ($packages as $package) {
+            $output->writeln('Creating package: ' . $package->title);
+            $this->contentExporter->start($package->title, $package->slug, $fileDateSuffix);
+            foreach ($supported as $lang) {
+                if (!$package->hasContentForLocale($lang['bolt_locale_code'])) {
+                    // We have no content for this locale so move along.
+                    continue;
+                }
+                $language = new Language(
+                    $lang['codes'],
+                    $lang['text'],
+                    boolval($lang['default'])
+                );
+                $interface = $this->config->get('exporter/interface/' . $lang['bolt_locale_code']);
+                if (!$interface) {
+                    $interface = $this->config->get('exporter/interface/en');
+                }
+                $this->contentExporter->startLocale($lang['bolt_locale_code'], $interface);
+                $this->contentExporter->addLanguage($language);
+
+                $collections = $package->getCollectionsByLocale($lang['bolt_locale_code']);
+                foreach ($collections as $collection) {
+                    $this->contentExporter->addCollection($collection);
+                }
+
+                $singles = $package->getSinglesByLocale($lang['bolt_locale_code']);
+                foreach ($singles as $single) {
+                    $this->contentExporter->addSingle($single);
+                }
+
+                $this->contentExporter->finishLocale();
+            }
+            $this->contentExporter->finish();
+            $output->writeln('Completed package: ' . $package->title);
+        }
     }
 
 }
