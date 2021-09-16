@@ -65,6 +65,13 @@ class ContentExporter
     private $languageData = [];
 
     /**
+     * The path to the logo file
+     *
+     * @var string
+     */
+    private $logoPath = '';
+
+    /**
      * An output interface to printing progress
      *
      * @var OutputInterface
@@ -107,13 +114,15 @@ class ContentExporter
      * @param string $itemName The item name for this export
      * @param string $filePrefix The name to append to the archive
      * @param string $fileDateSuffix A date format to append to the end of the archive (default: ExporterDefaults::FILE_DATE_SUFFIX)
+     * @param string $logo The path to the current logo
      *
      * @see https://www.php.net/manual/en/datetime.format.php
      */
     public function start(
         string $itemName,
         string $filePrefix,
-        string $fileDateSuffix = ExporterDefaults::FILE_DATE_SUFFIX
+        string $fileDateSuffix = ExporterDefaults::FILE_DATE_SUFFIX,
+        string $logo = ''
     ): void {
         $this->log('Export started!');
         $today = new \DateTime();
@@ -126,6 +135,10 @@ class ContentExporter
         $this->directories['export_root'] = Path::join($this->exportsDir, $this->exportFilename);
         if (! file_exists($this->directories['export_root'])) {
             mkdir($this->directories['export_root'], 0777, true);
+        }
+        if ('' !== $logo && (file_exists($logo))) {
+            copy($logo, Path::join($this->directories['export_root'], basename($logo)));
+            $this->logoPath = 'content/'.basename($logo);
         }
         $this->log('Setup complete.');
     }
@@ -140,6 +153,7 @@ class ContentExporter
     {
         $this->log('Start Locale: '.$locale);
         $this->currentLocale = $locale;
+        $interface['APP_LOGO'] = $this->logoPath;
         if (! \in_array($this->currentLocale, $this->providedLocales, true)) {
             $this->providedLocales[] = $this->currentLocale;
         }

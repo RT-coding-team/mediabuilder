@@ -201,9 +201,17 @@ class ExportCommand extends Command
         if (! $fileDateSuffix) {
             $fileDateSuffix = ExporterDefaults::FILE_DATE_SUFFIX;
         }
+        $logo = '';
+        $logoPath = $this->config->get('exporter/logo_public_path');
+        if ($logoPath) {
+            $logo = Path::canonicalize($this->directories['public'].$logoPath);
+            if (! file_exists($logo)) {
+                $logo = '';
+            }
+        }
         foreach ($packages as $package) {
             $output->writeln('Creating package: '.$package->title);
-            $this->contentExporter->start($package->title, $package->slug, $fileDateSuffix);
+            $this->contentExporter->start($package->title, $package->slug, $fileDateSuffix, $logo);
             foreach ($supported as $lang) {
                 if (! $package->hasContentForLocale($lang['bolt_locale_code'])) {
                     // We have no content for this locale so move along.
