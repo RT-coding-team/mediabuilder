@@ -121,6 +121,7 @@ class ContentExporter
             'itemName' => $itemName,
             'content' => [],
         ];
+        $this->languageData = [];
         $this->exportFilename = $filePrefix.'-'.$today->format($fileDateSuffix);
         $this->directories['export_root'] = Path::join($this->exportsDir, $this->exportFilename);
         if (! file_exists($this->directories['export_root'])) {
