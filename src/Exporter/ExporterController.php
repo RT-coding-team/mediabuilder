@@ -9,6 +9,7 @@ use Bolt\Controller\Backend\BackendZoneInterface;
 use Bolt\Controller\TwigAwareController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Webmozart\PathUtil\Path;
 
 /**
  * The exporter class for exporting the content to MM Interface
@@ -16,18 +17,28 @@ use Symfony\Component\Routing\Annotation\Route;
 class ExporterController extends TwigAwareController implements BackendZoneInterface
 {
     /**
-     * Our configuration class
+     * Our Exporter Config
      *
      * @var Config
      */
-    private $exporterConfig = null;
+    public $exportConfig = null;
+
+    /**
+     * The exports directory
+     *
+     * @var string
+     */
+    public $exportPath = '';
 
     /**
      * Build the class
      */
     public function __construct()
     {
-        $this->exporterConfig = new Config();
+        $this->exportConfig = new Config();
+        $publicPath = $this->exportConfig->get('exporter/public_path');
+        $publicDir = Path::canonicalize(\dirname(__DIR__, 2).'/public/');
+        $this->exportPath = Path::canonicalize($publicDir.$publicPath);
     }
 
     /**
@@ -35,8 +46,29 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
      */
     public function manage(): Response
     {
-        $publicPath = $this->exporterConfig->get('exporter/public_path');
+        $files = [];
+        $dateFormat = $this->exportConfig->get('exporter/file_date_suffix');
+        if (! $dateFormat) {
+            $dateFormat = ExporterDefaults::FILE_DATE_SUFFIX;
+        }
+        foreach (glob($this->exportPath.'/*.zip') as $filename) {
+            $pieces = explode('_', basename($filename, '.zip'));
+            if (2 > \count($pieces)) {
+                continue;
+            }
+            $date = \DateTime::createFromFormat($dateFormat, $pieces[1]);
+            $files[] = [
+                'date' => $date->format('M j, Y g:i A'),
+                'filename' => basename($filename),
+                'timestamp' => $date->getTimestamp(),
+            ];
+        }
+        uasort($files, function ($a, $b) {
+            return $b['timestamp'] <=> $a['timestamp'];
+        });
 
-        return $this->render('backend/exporter/index.twig', []);
+        return $this->render('backend/exporter/index.twig', [
+            'files' => $files,
+        ]);
     }
 }

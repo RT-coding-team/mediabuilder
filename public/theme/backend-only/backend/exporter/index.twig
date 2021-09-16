@@ -3,5 +3,20 @@
 {% block title %}{% endblock %}
 {% block main %}
     <h1 class="admin__header--title"><i class="fas fa-fw fa-file-export"></i> Interface Exporter</h1>
-    <p>Welcome to our exporter.</p>
+    <table class="table table-striped">
+        <tbody>
+            <tr>
+                <th scope="col">Content Archive</th>
+                <th scope="col">Created On</th>
+                <th scope="col"></th>
+            </tr>
+            {% for file in files %}
+                <tr>
+                    <td>{{ file.filename }}</td>
+                    <td>{{ file.date }}</td>
+                    <td></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}
