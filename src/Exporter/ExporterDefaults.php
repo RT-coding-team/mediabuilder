@@ -13,12 +13,6 @@ class ExporterDefaults
      */
     public const PUBLIC_PATH = '/files/exports/';
     /**
-     * The prefix used for all file archives
-     *
-     * @var string
-     */
-    public const FILE_PREFIX = 'export';
-    /**
      * A date suffix appended to all file archives.
      *
      * @var string

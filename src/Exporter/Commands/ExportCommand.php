@@ -198,15 +198,11 @@ class ExportCommand extends Command
      */
     private function export(array $packages, array $supported): void
     {
-        $filePrefix = $this->config->get('exporter/file_prefix');
-        if (!$filePrefix) {
-            $filePrefix = ExporterDefaults::FILE_PREFIX;
-        }
         $fileDateSuffix = $this->config->get('exporter/file_date_suffix');
         if (!$fileDateSuffix) {
             $fileDateSuffix = ExporterDefaults::FILE_DATE_SUFFIX;
         }
-
+        
     }
 
 }

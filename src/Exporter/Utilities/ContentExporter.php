@@ -104,13 +104,14 @@ class ContentExporter
     /**
      * Start the export process.
      *
-     * @param   string  $filePrefix         The name to append to the archive (default: ExporterDefaults::FILE_PREFIX)
+     * @param   string  $filePrefix         The name to append to the archive
      * @param   string  $fileDateSuffix     A date format to append to the end of the archive (default: ExporterDefaults::FILE_DATE_SUFFIX)
      * @return void
      *
      * @link https://www.php.net/manual/en/datetime.format.php
      */
-    public function start(string $filePrefix = ExporterDefaults::FILE_PREFIX,
+    public function start(
+        string $filePrefix,
         string $fileDateSuffix = ExporterDefaults::FILE_DATE_SUFFIX
     )
     {
