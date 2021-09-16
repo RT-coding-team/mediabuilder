@@ -148,7 +148,7 @@ class ExportCommand extends Command
             $this->export($output, $packages, $supported);
             return Command::SUCCESS;
         } catch (\Exception $e) {
-            $this->output->writeln($e->getMessage());
+            $output->writeln($e->getMessage());
             return Command::FAILURE;
         }
     }
