@@ -59,6 +59,10 @@ class CollectionsStore extends BaseStore
             $localImagePath,
             $recommended
         );
+        $packages = $content->getTaxonomies('packages');
+        foreach ($packages as $package) {
+            $collection->addPackage($package->getSlug());
+        }
         $tags = $content->getTaxonomies('tags');
         foreach ($tags as $tag) {
             $collection->addTag($tag->getName());

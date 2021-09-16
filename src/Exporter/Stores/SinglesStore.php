@@ -59,6 +59,10 @@ class SinglesStore extends BaseStore
             $localImagePath,
             $recommended
         );
+        $packages = $content->getTaxonomies('packages');
+        foreach ($packages as $package) {
+            $single->addPackage($package->getSlug());
+        }
         $tags = $content->getTaxonomies('tags');
         foreach ($tags as $tag) {
             $single->addTag($tag->getName());

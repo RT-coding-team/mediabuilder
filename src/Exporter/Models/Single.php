@@ -7,13 +7,6 @@ namespace App\Exporter\Models;
 class Single
 {
     /**
-     * An array of categories
-     *
-     * @var Array
-     */
-    public $categories = [];
-
-    /**
      * The description of the single
      *
      * @var string
@@ -77,18 +70,35 @@ class Single
     public $slug = '';
 
     /**
-     * An array of tags for the single
-     *
-     * @var Array
-     */
-    public $tags = [];
-
-    /**
      * The title for the single
      *
      * @var string
      */
     public $title = '';
+
+    /**
+     * An array of categories
+     *
+     * @var array
+     * @access private
+     */
+    private $categories = [];
+
+    /**
+     * An array of packages this single belongs to.
+     *
+     * @var array
+     * @access private
+     */
+    private $packages = [];
+
+    /**
+     * An array of tags for the single
+     *
+     * @var array
+     * @access private
+     */
+    private $tags = [];
 
     public function __construct(
         string $slug,
@@ -127,6 +137,18 @@ class Single
     {
         if (!in_array($category, $this->categories)) {
             $this->categories[] = $category;
+        }
+    }
+
+    /**
+     * Add a package to this single
+     *
+     * @param string $package The package slug to add
+     */
+    public function addPackage(string $package)
+    {
+        if (!in_array($package, $this->packages)) {
+            $this->packages[] = $package;
         }
     }
 

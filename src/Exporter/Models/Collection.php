@@ -9,13 +9,6 @@ use App\Exporter\Models\Episode;
 class Collection
 {
     /**
-     * An array of categories
-     *
-     * @var Array
-     */
-    public $categories = [];
-
-    /**
      * The description of the collection
      *
      * @var string
@@ -65,18 +58,35 @@ class Collection
     public $slug = '';
 
     /**
-     * An array of tags for the collection
-     *
-     * @var Array
-     */
-    public $tags = [];
-
-    /**
      * The title for the collection
      *
      * @var string
      */
     public $title = '';
+
+    /**
+     * An array of categories
+     *
+     * @var array
+     * @access private
+     */
+    private $categories = [];
+
+    /**
+     * An array of packages that the collection belongs to
+     *
+     * @var array
+     * @access private
+     */
+    private $packages = [];
+
+    /**
+     * An array of tags for the collection
+     *
+     * @var array
+     * @access private
+     */
+    private $tags = [];
 
     public function __construct(
         string $slug,
@@ -118,6 +128,18 @@ class Collection
      */
     public function addEpisode(Episode $episode) {
         $this->episodes[] = $episode;
+    }
+
+    /**
+     * Add a package to this collection
+     *
+     * @param string $package The package slug to add
+     */
+    public function addPackage(string $package)
+    {
+        if (!in_array($package, $this->packages)) {
+            $this->packages[] = $package;
+        }
     }
 
     /**
