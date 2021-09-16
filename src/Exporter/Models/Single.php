@@ -6,6 +6,14 @@ namespace App\Exporter\Models;
  */
 class Single
 {
+
+    /**
+     * An array of categories (needs to stay public to json serialize correctly)
+     *
+     * @var array
+     */
+    public $categories = [];
+
     /**
      * The description of the single
      *
@@ -70,19 +78,18 @@ class Single
     public $slug = '';
 
     /**
+     * An array of tags for the single
+     *
+     * @var array
+     */
+    public $tags = [];
+
+    /**
      * The title for the single
      *
      * @var string
      */
     public $title = '';
-
-    /**
-     * An array of categories
-     *
-     * @var array
-     * @access private
-     */
-    private $categories = [];
 
     /**
      * An array of packages this single belongs to.
@@ -91,14 +98,6 @@ class Single
      * @access private
      */
     private $packages = [];
-
-    /**
-     * An array of tags for the single
-     *
-     * @var array
-     * @access private
-     */
-    private $tags = [];
 
     public function __construct(
         string $slug,

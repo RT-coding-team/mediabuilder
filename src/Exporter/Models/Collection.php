@@ -8,6 +8,14 @@ use App\Exporter\Models\Episode;
  */
 class Collection
 {
+
+    /**
+     * An array of categories (needs to stay public to json serialize correctly)
+     *
+     * @var array
+     */
+    public $categories = [];
+
     /**
      * The description of the collection
      *
@@ -58,19 +66,18 @@ class Collection
     public $slug = '';
 
     /**
+     * An array of tags for the collection (needs to stay public to json serialize correctly)
+     *
+     * @var array
+     */
+    public $tags = [];
+
+    /**
      * The title for the collection
      *
      * @var string
      */
     public $title = '';
-
-    /**
-     * An array of categories
-     *
-     * @var array
-     * @access private
-     */
-    private $categories = [];
 
     /**
      * An array of packages that the collection belongs to
@@ -79,14 +86,6 @@ class Collection
      * @access private
      */
     private $packages = [];
-
-    /**
-     * An array of tags for the collection
-     *
-     * @var array
-     * @access private
-     */
-    private $tags = [];
 
     public function __construct(
         string $slug,
