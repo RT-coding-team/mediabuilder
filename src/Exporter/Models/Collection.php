@@ -153,4 +153,15 @@ class Collection
             $this->tags[] = $tag;
         }
     }
+
+    /**
+     * Do we belong to the given package?
+     *
+     * @param  string $packageSlug The slug to check
+     * @return bool                yes|no
+     */
+    public function belongsTo(string $packageSlug): bool
+    {
+        return in_array($packageSlug, $this->packages);
+    }
 }

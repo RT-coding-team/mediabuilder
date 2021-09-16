@@ -106,4 +106,14 @@ class Package
         }
         return $singles;
     }
+
+    /**
+     * Does this package have resources?
+     *
+     * @return bool yes|no
+     */
+    public function isEmpty(): bool
+    {
+        return ((empty($this->collections)) && (empty($this->singles)));
+    }
 }

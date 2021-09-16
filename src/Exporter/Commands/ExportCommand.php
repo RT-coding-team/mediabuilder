@@ -138,9 +138,14 @@ class ExportCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         set_time_limit(0);
+        $supported = $this->config->get('exporter/supported_languages');
+        if (!$supported) {
+            $supported = ExporterDefaults::SUPPORTED_LANGUAGES;
+        }
         $this->contentExporter->setOutput($output);
         try {
-            $this->export($output);
+            $packages = $this->buildPackages($supported);
+            $this->export($packages, $supported);
             return Command::SUCCESS;
         } catch (\Exception $e) {
             $this->output->writeln($e->getMessage());
@@ -149,12 +154,49 @@ class ExportCommand extends Command
     }
 
     /**
-     * Export the content
-     * @param  OutputInterface $output The output interface
+     * Build the packages to send to the exporter
      *
+     * @param   array   $supported  The supported languages
+     * @return  array               The array of packages
+     */
+    private function buildPackages(array $supported): array
+    {
+        $results = [];
+        $packages = $this->packagesStore->findAll();
+        foreach ($packages as $key => $package) {
+            foreach ($supported as $lang) {
+                $localeCode = $lang['bolt_locale_code'];
+                $collections = $this->collectionsStore->findAll($localeCode);
+                // Find collections that belong to the given package
+                foreach ($collections as $collection) {
+                    if ($collection->belongsTo($package->slug)) {
+                        $package->addCollection($localeCode, $collection);
+                    }
+                }
+                $singles = $this->singlesStore->findAll($localeCode);
+                // Find singles that belong to the given package
+                foreach ($singles as $single) {
+                    if ($single->belongsTo($package->slug)) {
+                        $package->addSingle($localeCode, $single);
+                    }
+                }
+            }
+            // Remove empty packages
+            if (!$package->isEmpty()) {
+                $results[] = $package;
+            }
+        }
+        return $results;
+    }
+
+    /**
+     * Export the packages
+     *
+     * @param array $packages  The packages to export
+     * @param array $supported The supported languages
      * @access private
      */
-    private function export(OutputInterface $output): void
+    private function export(array $packages, array $supported): void
     {
         $filePrefix = $this->config->get('exporter/file_prefix');
         if (!$filePrefix) {
@@ -164,34 +206,7 @@ class ExportCommand extends Command
         if (!$fileDateSuffix) {
             $fileDateSuffix = ExporterDefaults::FILE_DATE_SUFFIX;
         }
-        $supported = $this->config->get('exporter/supported_languages');
-        if (!$supported) {
-            $supported = ExporterDefaults::SUPPORTED_LANGUAGES;
-        }
-        $this->contentExporter->start($filePrefix, $fileDateSuffix);
-        foreach ($supported as $lang) {
-            $language = new Language(
-                $lang['codes'],
-                $lang['text'],
-                boolval($lang['default'])
-            );
-            $interface = $this->config->get('exporter/interface/' . $lang['bolt_locale_code']);
-            if (!$interface) {
-                $interface = $this->config->get('exporter/interface/en');
-            }
-            $this->contentExporter->startLocale($lang['bolt_locale_code'], $interface);
-            $this->contentExporter->addLanguage($language);
-            $collections = $this->collectionsStore->findAll($lang['bolt_locale_code']);
-            foreach ($collections as $collection) {
-                $this->contentExporter->addCollection($collection);
-            }
-            $singles = $this->singlesStore->findAll($lang['bolt_locale_code']);
-            foreach ($singles as $single) {
-                $this->contentExporter->addSingle($single);
-            }
-            $this->contentExporter->finishLocale();
-        }
-        $this->contentExporter->finish();
+
     }
 
 }
