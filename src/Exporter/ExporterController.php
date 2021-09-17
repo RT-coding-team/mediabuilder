@@ -10,6 +10,7 @@ use Bolt\Controller\TwigAwareController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Webmozart\PathUtil\Path;
 
 /**
@@ -35,11 +36,21 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
     ];
 
     /**
-     * Build the class
+     * The authorization checker
+     *
+     * @var AuthorizationCheckerInterface
      */
-    public function __construct()
+    private $authorizationChecker = null;
+
+    /**
+     * Build the class
+     *
+     * @param AuthorizationCheckerInterface $authorizationChecker permission checker
+     */
+    public function __construct(AuthorizationCheckerInterface $authorizationChecker)
     {
         $this->exportConfig = new Config();
+        $this->authorizationChecker = $authorizationChecker;
         $publicPath = $this->exportConfig->get('exporter/public_path');
         $this->paths['exportRelative'] = $publicPath;
         $publicDir = Path::canonicalize(\dirname(__DIR__, 2).'/public/');
@@ -53,6 +64,9 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
      */
     public function manage(): Response
     {
+        if (! $this->isAllowed()) {
+            return $this->redirectToRoute('bolt_dashboard');
+        }
         $files = [];
         $dateFormat = $this->exportConfig->get('exporter/file_date_suffix');
         if (! $dateFormat) {
@@ -87,6 +101,9 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
      */
     public function delete(Request $request): Response
     {
+        if (! $this->isAllowed()) {
+            return $this->redirectToRoute('bolt_dashboard');
+        }
         $filename = $request->request->get('filename');
         if (! $filename) {
             throw $this->createNotFoundException('The file does not exist!');
@@ -101,5 +118,15 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
         return $this->redirectToRoute('app_exporter', [
             'deleted' => $deletedVal,
         ]);
+    }
+
+    /**
+     * Check if the user is allowed here?
+     *
+     * @return bool yes|no
+     */
+    private function isAllowed(): bool
+    {
+        return $this->authorizationChecker->isGranted(ExporterDefaults::REQUIRED_PERMISSION);
     }
 }

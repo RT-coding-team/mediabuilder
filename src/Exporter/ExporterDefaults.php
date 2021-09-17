@@ -25,6 +25,13 @@ class ExporterDefaults
     public const FILE_DATE_SUFFIX = 'm-d-Y-H-i';
 
     /**
+     * The required permission to access this extension
+     *
+     * @var string
+     */
+    public const REQUIRED_PERMISSION = 'managefiles:config';
+
+    /**
      * The default supported languages
      *
      * @var array

@@ -7,6 +7,7 @@ namespace App\Exporter;
 use Bolt\Menu\ExtensionBackendMenuInterface;
 use Knp\Menu\MenuItem;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 /**
  * Adds a menu item for the exporter
@@ -17,12 +18,22 @@ class ExporterMenu implements ExtensionBackendMenuInterface
     private $urlGenerator;
 
     /**
+     * The authorization checker.
+     *
+     * @var AuthorizationCheckerInterface
+     */
+    private $authorizationChecker = null;
+
+    /**
      * Construct the class
      *
      * @param UrlGeneratorInterface $urlGenerator The URL generator
      */
-    public function __construct(UrlGeneratorInterface $urlGenerator)
-    {
+    public function __construct(
+        AuthorizationCheckerInterface $authorizationChecker,
+        UrlGeneratorInterface $urlGenerator
+    ) {
+        $this->authorizationChecker = $authorizationChecker;
         $this->urlGenerator = $urlGenerator;
     }
 
@@ -33,6 +44,9 @@ class ExporterMenu implements ExtensionBackendMenuInterface
      */
     public function addItems(MenuItem $menu): void
     {
+        if (! $this->authorizationChecker->isGranted(ExporterDefaults::REQUIRED_PERMISSION)) {
+            return;
+        }
         // This adds a new heading
         $menu->addChild('Exporter', [
             'extras' => [
