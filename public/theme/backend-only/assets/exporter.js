@@ -32,6 +32,13 @@ function ready(callback) {
     document.addEventListener('DOMContentLoaded', callback);
   }
 }
+/**
+ * Notify the viewer
+ *
+ * @param  {string}  message   The message to display
+ * @param  {Boolean} isSuccess is it a success message?
+ * @return {void}
+ */
 function notify(message, isSuccess) {
   var klass = 'message-error';
   var label = 'Error!';
