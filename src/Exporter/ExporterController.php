@@ -28,7 +28,10 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
      *
      * @var string
      */
-    public $exportPath = '';
+    public $paths = [
+        'export' => '',
+        'exportRelative' => '',
+    ];
 
     /**
      * Build the class
@@ -37,12 +40,15 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
     {
         $this->exportConfig = new Config();
         $publicPath = $this->exportConfig->get('exporter/public_path');
+        $this->paths['exportRelative'] = $publicPath;
         $publicDir = Path::canonicalize(\dirname(__DIR__, 2).'/public/');
-        $this->exportPath = Path::canonicalize($publicDir.$publicPath);
+        $this->paths['export'] = Path::canonicalize($publicDir.$publicPath);
     }
 
     /**
      * @Route("/exporter/", name="app_exporter")
+     *
+     * Manage the files
      */
     public function manage(): Response
     {
@@ -51,7 +57,7 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
         if (! $dateFormat) {
             $dateFormat = ExporterDefaults::FILE_DATE_SUFFIX;
         }
-        foreach (glob($this->exportPath.'/*.zip') as $filename) {
+        foreach (glob($this->paths['export'].'/*.zip') as $filename) {
             $pieces = explode('_', basename($filename, '.zip'));
             if (2 > \count($pieces)) {
                 continue;
@@ -60,6 +66,7 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
             $files[] = [
                 'date' => $date->format('M j, Y g:i A'),
                 'filename' => basename($filename),
+                'filepath' => Path::join($this->paths['exportRelative'], basename($filename)),
                 'timestamp' => $date->getTimestamp(),
             ];
         }

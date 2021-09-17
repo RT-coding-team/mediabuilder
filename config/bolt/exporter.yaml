@@ -1,5 +1,5 @@
 # Custom settings for our exporter
-# public_path: The path in the public directory where we store exports
+# public_path: The path in the public directory where we store exports (do not include /public/) It should begin and end with a forward slash.
 # file_date_suffix: A date suffix appended to all file archives. See https://www.php.net/manual/en/datetime.format.php
 # supported_languages: All languages supported by the Media Interface
 # interface: The interface translations for the Media Interface.  Duplicate the en for each supported lang.  Use the bolt_locale_code
