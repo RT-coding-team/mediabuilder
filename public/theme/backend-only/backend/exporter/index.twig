@@ -1,8 +1,12 @@
 {% extends '@bolt/_base/layout.html.twig' %}
 
-{% block title %}{% endblock %}
+{% block title %}<i class="fas fa-fw fa-file-export"></i> Interface Exporter{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/exporter.css') }}" />
+{% endblock %}
 {% block main %}
-    <h1 class="admin__header--title"><i class="fas fa-fw fa-file-export"></i> Interface Exporter</h1>
+    <div id="message-holder"></div>
     <table class="table table-striped">
         <tbody>
             <tr>
@@ -21,9 +25,13 @@
                             </a>
                             <button type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="btn btn-sm btn-secondary edit-actions__dropdown-toggler dropdown-toggle dropdown-toggle-split"><span class="sr-only">Toggle Dropdown</span></button>
                             <div class="edit-actions__dropdown dropdown-menu dropdown-menu-right">
-                            <a href="/bolt/exporter/delete?filename={{ file.filename }}" target="_blank" class="dropdown-item">
-                                <i class="fas fa-trash"></i> Delete
-                            </a>
+                                <form class="delete-archive" action="{{ path('app_exporter_delete') }}" method="post">
+                                    <input type="hidden" name="_method" value="DELETE" />
+                                    <input type="hidden" name="filename" value="{{ file.filename }}" />
+                                    <a href="#" class="dropdown-item delete-link">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </a>
+                                </form>
                             </div>
                         </div>
                     </td>
@@ -31,4 +39,8 @@
             {% endfor %}
         </tbody>
     </table>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/exporter.js') }}"></script>
 {% endblock %}

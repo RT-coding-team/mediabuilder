@@ -7,6 +7,7 @@ namespace App\Exporter;
 use App\Exporter\Utilities\Config;
 use Bolt\Controller\Backend\BackendZoneInterface;
 use Bolt\Controller\TwigAwareController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Webmozart\PathUtil\Path;
@@ -76,6 +77,29 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
 
         return $this->render('backend/exporter/index.twig', [
             'files' => $files,
+        ]);
+    }
+
+    /**
+     * @Route("/exporter/delete", name="app_exporter_delete", methods={"DELETE"})
+     *
+     * Manage the files
+     */
+    public function delete(Request $request): Response
+    {
+        $filename = $request->request->get('filename');
+        if (! $filename) {
+            throw $this->createNotFoundException('The file does not exist!');
+        }
+        $filepath = Path::join($this->paths['export'], $filename);
+        if (! file_exists($filepath)) {
+            throw $this->createNotFoundException('The file does not exist!');
+        }
+        $deleted = unlink($filepath);
+        $deletedVal = $deleted ? 'true' : 'false';
+
+        return $this->redirectToRoute('app_exporter', [
+            'deleted' => $deletedVal,
         ]);
     }
 }
