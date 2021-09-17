@@ -10,13 +10,15 @@
     <table class="table table-striped">
         <tbody>
             <tr>
-                <th scope="col">Content Archive</th>
+                <th scope="col">Archive Filename</th>
+                <th scope="col">Package</th>
                 <th scope="col">Created On</th>
                 <th scope="col"></th>
             </tr>
             {% for file in files %}
                 <tr>
                     <td>{{ file.filename }}</td>
+                    <td>{{ file.package }}</td>
                     <td>{{ file.date }}</td>
                     <td>
                         <div class="btn-group">

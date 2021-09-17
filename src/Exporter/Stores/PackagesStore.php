@@ -50,4 +50,27 @@ class PackagesStore
 
         return $packages;
     }
+
+    /**
+     * Find a package by its' slug
+     *
+     * @param string $slug The slug
+     *
+     * @return Package The package or null if it does not exist
+     */
+    public function findBySlug(string $slug): ?Package
+    {
+        $query = $this->taxonomyRepository->findBy([
+            'type' => 'packages',
+            'slug' => $slug,
+        ]);
+        if (0 === \count($query)) {
+            return null;
+        }
+
+        return new Package(
+            $query[0]->getSlug(),
+            $query[0]->getName()
+        );
+    }
 }
