@@ -144,7 +144,7 @@ class ExportCommand extends Command
 
             return Command::SUCCESS;
         } catch (\Throwable $e) {
-            $output->writeln($e->getMessage());
+            $this->contentExporter->log($e->getMessage(), true);
 
             return Command::FAILURE;
         }
@@ -210,7 +210,7 @@ class ExportCommand extends Command
             }
         }
         foreach ($packages as $package) {
-            $output->writeln('Creating package: '.$package->title);
+            $this->contentExporter->log('Creating package: '.$package->title);
             $this->contentExporter->start($package->title, $package->slug, $fileDateSuffix, $logo);
             foreach ($supported as $lang) {
                 if (! $package->hasContentForLocale($lang['bolt_locale_code'])) {

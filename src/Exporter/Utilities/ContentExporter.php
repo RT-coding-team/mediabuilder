@@ -38,6 +38,13 @@ class ContentExporter
     private $exportFilename = '';
 
     /**
+     * Our file logger
+     *
+     * @var FileLogger
+     */
+    private $fileLogger = null;
+
+    /**
      * The directories we use for exporting
      *
      * @var array
@@ -105,7 +112,10 @@ class ContentExporter
      */
     public function setOutput(OutputInterface $output): void
     {
-        $this->output = $output;
+        $this->fileLogger = new FileLogger(
+            $output,
+            Path::join($this->exportsDir, 'export_progress.json')
+        );
     }
 
     /**
@@ -303,7 +313,31 @@ class ContentExporter
             $this->removeDirectory(Path::join($this->directories['export_root'], $locale));
         }
         $this->removeDirectory($this->directories['export_root']);
-        $this->log('Done!');
+        if ($this->fileLogger) {
+            $this->fileLogger->logFinished('Content Exporter');
+        } else {
+            $this->log('Content Exporter has completed.');
+        }
+    }
+
+    /**
+     * Log a message
+     *
+     * @param string $message The message to log
+     * @param bool $isError Are we dealing with an error? (default: false)
+     */
+    public function log(string $message, $isError = false): void
+    {
+        if (! $this->fileLogger) {
+            echo $message."\r\n";
+
+            return;
+        }
+        if ($isError) {
+            $this->fileLogger->logError($message);
+        } else {
+            $this->fileLogger->log($message);
+        }
     }
 
     /**
@@ -328,20 +362,5 @@ class ContentExporter
             $todo($fileinfo->getRealPath());
         }
         rmdir($directory);
-    }
-
-    /**
-     * Log a message
-     *
-     * @param string $message The message to log
-     */
-    private function log(string $message): void
-    {
-        if (! $this->output) {
-            echo $message."\r\n";
-
-            return;
-        }
-        $this->output->writeln($message);
     }
 }
