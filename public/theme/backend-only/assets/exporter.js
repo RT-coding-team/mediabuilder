@@ -48,7 +48,9 @@ function notify(message, isSuccess) {
   }
   document.getElementById('message-holder').innerHTML = '<div class="message '+klass+'"><h3>'+label+'</h3><p>'+message+'</p></div>';
 }
-
+/**
+ * Run our code
+ */
 ready(function() {
   var deleted = findGetParameter('deleted');
   if (deleted !== '') {
@@ -58,6 +60,7 @@ ready(function() {
       notify('Sorry, we were unable to delete the file!', false);
     }
   }
+
   var links = document.querySelectorAll('.delete-link');
   for (var i = 0; i < links.length; i++) {
     links[i].addEventListener('click', function(event) {

@@ -7,6 +7,11 @@
 {% endblock %}
 {% block main %}
     <div id="message-holder"></div>
+    <div>
+        <p class="text-right">
+            <a href="{{ path('app_exporter_start') }}" class="btn btn-primary" id="export-starter"><i class="fas fa-fw fa-wrench"></i> Export</a>
+        </p>
+    </div>
     <table class="table table-striped">
         <tbody>
             <tr>
@@ -44,5 +49,6 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js" integrity="sha256-0H3Nuz3aug3afVbUlsu12Puxva3CP4EhJtPExqs54Vg=" crossorigin="anonymous"></script>
     <script src="{{ asset('assets/exporter.js') }}"></script>
 {% endblock %}

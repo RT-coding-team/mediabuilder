@@ -10,6 +10,7 @@ use Bolt\Controller\Backend\BackendZoneInterface;
 use Bolt\Controller\TwigAwareController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Process\Process;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Webmozart\PathUtil\Path;
@@ -69,6 +70,20 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
     }
 
     /**
+     * Retrieve the list of files
+     */
+    public function apiFiles(): Response
+    {
+        $files = $this->getFiles();
+        $response = $this->render('backend/exporter/api/files.twig', [
+            'files' => $files,
+        ]);
+        $response->headers->set('Content-Type', 'application/json');
+
+        return $response;
+    }
+
+    /**
      * @Route("/exporter/delete", name="app_exporter_delete", methods={"DELETE"})
      *
      * Manage the files
@@ -95,14 +110,19 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
     }
 
     /**
-     * Retrieve the list of files
+     * @Route("/exporter/start", name="app_exporter_start")
+     *
+     * Start the export process
      */
-    public function apiFiles(): Response
+    public function start(): Response
     {
-        $files = $this->getFiles();
-        $response = $this->render('backend/exporter/api/files.twig', [
-            'files' => $files,
-        ]);
+        $binDir = Path::canonicalize(\dirname(__DIR__, 2).'/bin/');
+        $binFile = Path::join($binDir, 'console');
+        $phpFile = Path::join(PHP_BINDIR, 'php');
+        Process::fromShellCommandline($phpFile.' '.$binFile.' exporter:export &')->start();
+        $response = new Response(json_encode([
+            'started' => true,
+        ]));
         $response->headers->set('Content-Type', 'application/json');
 
         return $response;
