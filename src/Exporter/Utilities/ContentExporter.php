@@ -79,13 +79,6 @@ class ContentExporter
     private $logoPath = '';
 
     /**
-     * An output interface to printing progress
-     *
-     * @var OutputInterface
-     */
-    private $output = null;
-
-    /**
      * An array of locales provided by the user
      *
      * @var array

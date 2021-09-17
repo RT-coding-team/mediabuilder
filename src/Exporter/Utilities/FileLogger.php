@@ -33,6 +33,12 @@ class FileLogger
      */
     private $output = null;
 
+    /**
+     * Build the class
+     *
+     * @param OutputInterface $output The output interface
+     * @param string $logFilePath The path to the JSON log file
+     */
     public function __construct(
         OutputInterface $output,
         string $logFilePath
@@ -48,8 +54,6 @@ class FileLogger
      * Log a message that has no error code
      *
      * @param string $message The message to log
-     *
-     * @return void
      */
     public function log(string $message): void
     {
@@ -71,8 +75,6 @@ class FileLogger
      * Log that the script is completed
      *
      * @param string $processName the name of the process that has completed
-     *
-     * @return void
      */
     public function logFinished(string $processName): void
     {
@@ -94,8 +96,6 @@ class FileLogger
      * Log a error that has an error code
      *
      * @param string $message The message to log
-     *
-     * @return void
      */
     public function logError(string $message): void
     {
