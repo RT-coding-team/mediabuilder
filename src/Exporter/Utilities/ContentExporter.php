@@ -306,11 +306,7 @@ class ContentExporter
             $this->removeDirectory(Path::join($this->directories['export_root'], $locale));
         }
         $this->removeDirectory($this->directories['export_root']);
-        if ($this->fileLogger) {
-            $this->fileLogger->logFinished('Content Exporter');
-        } else {
-            $this->log('Content Exporter has completed.');
-        }
+        $this->log('Completed export.');
     }
 
     /**

@@ -82,7 +82,7 @@ class FileLogger
         $content = [
             'completed' => true,
             'isError' => false,
-            'message' => 'FINISHED',
+            'message' => $processName.' has completed!',
             'timestamp' => $now->getTimestamp(),
         ];
         $this->data[] = $content;

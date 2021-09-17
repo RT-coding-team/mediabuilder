@@ -242,7 +242,8 @@ class ExportCommand extends Command
                 $this->contentExporter->finishLocale();
             }
             $this->contentExporter->finish();
-            $output->writeln('Completed package: '.$package->title);
+            $this->contentExporter->log('Completed package: '.$package->title);
         }
+        $this->contentExporter->logFinished('Content Exporter');
     }
 }
