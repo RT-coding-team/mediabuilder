@@ -11,6 +11,7 @@ use App\Exporter\Stores\PackagesStore;
 use App\Exporter\Stores\SinglesStore;
 use App\Exporter\Utilities\Config;
 use App\Exporter\Utilities\ContentExporter;
+use App\Exporter\Utilities\FileLogger;
 use Bolt\Repository\ContentRepository;
 use Bolt\Repository\RelationRepository;
 use Bolt\Repository\TaxonomyRepository;
@@ -63,6 +64,13 @@ class ExportCommand extends Command
     private $contentExporter = null;
 
     /**
+     * The file logger for tracking progress
+     *
+     * @var FileLogger
+     */
+    private $fileLogger = null;
+
+    /**
      * Our packages store
      *
      * @var PackagesStore
@@ -111,7 +119,6 @@ class ExportCommand extends Command
             $this->directories['public']
         );
         $this->packagesStore = new PackagesStore($taxonomyRepository);
-        $this->contentExporter = new ContentExporter($this->directories['exports']);
     }
 
     /**
@@ -133,18 +140,25 @@ class ExportCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         set_time_limit(0);
+        $this->fileLogger = new FileLogger(
+            $output,
+            Path::join($this->directories['exports'], 'export_progress.json')
+        );
+        $this->contentExporter = new ContentExporter(
+            $this->directories['exports'],
+            $this->fileLogger
+        );
         $supported = $this->config->get('exporter/supported_languages');
         if (! $supported) {
             $supported = ExporterDefaults::SUPPORTED_LANGUAGES;
         }
-        $this->contentExporter->setOutput($output);
         try {
             $packages = $this->buildPackages($supported);
             $this->export($output, $packages, $supported);
 
             return Command::SUCCESS;
         } catch (\Throwable $e) {
-            $this->contentExporter->log($e->getMessage(), true);
+            $this->fileLogger->logError($e->getMessage());
 
             return Command::FAILURE;
         }
@@ -210,7 +224,7 @@ class ExportCommand extends Command
             }
         }
         foreach ($packages as $package) {
-            $this->contentExporter->log('Creating package: '.$package->title);
+            $this->fileLogger->log('Creating package: '.$package->title);
             $this->contentExporter->start($package->title, $package->slug, $fileDateSuffix, $logo);
             foreach ($supported as $lang) {
                 if (! $package->hasContentForLocale($lang['bolt_locale_code'])) {
@@ -242,8 +256,8 @@ class ExportCommand extends Command
                 $this->contentExporter->finishLocale();
             }
             $this->contentExporter->finish();
-            $this->contentExporter->log('Completed package: '.$package->title);
+            $this->fileLogger->log('Completed package: '.$package->title);
         }
-        $this->contentExporter->logFinished('Content Exporter');
+        $this->fileLogger->logFinished('Content Exporter');
     }
 }
