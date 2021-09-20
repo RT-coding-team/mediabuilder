@@ -129,7 +129,7 @@ class ContentExporter
             mkdir($this->directories['export_root'], 0777, true);
         }
         if ('' !== $logo && (file_exists($logo))) {
-            // copy($logo, Path::join($this->directories['export_root'], basename($logo)));
+            copy($logo, Path::join($this->directories['export_root'], basename($logo)));
             $this->logoPath = 'content/'.basename($logo);
         }
         $this->log('Setup complete.');
@@ -190,9 +190,9 @@ class ContentExporter
             // Store episode files
             $this->log('Adding a new episode: '.$episode->title);
             $this->log('Copying file: '.$episode->image);
-            // copy($episode->localImage, Path::join($this->directories['export_images'], $episode->image));
+            copy($episode->localImage, Path::join($this->directories['export_images'], $episode->image));
             $this->log('Copying file: '.$episode->filename);
-            // copy($episode->localFilename, Path::join($this->directories['export_media'], $episode->filename));
+            copy($episode->localFilename, Path::join($this->directories['export_media'], $episode->filename));
             unset($episode->localImage);
             unset($episode->localFilename);
         }
@@ -201,7 +201,7 @@ class ContentExporter
         file_put_contents($dataFilePath, json_encode($clone, \JSON_UNESCAPED_UNICODE));
         // Store files
         $this->log('Copying file: '.$collection->image);
-        // copy($collection->localImage, Path::join($this->directories['export_images'], $collection->image));
+        copy($collection->localImage, Path::join($this->directories['export_images'], $collection->image));
         // Add to main data
         $mainClone = clone $collection;
         unset($mainClone->localImage);
@@ -252,9 +252,9 @@ class ContentExporter
         file_put_contents($dataFilePath, json_encode($clone, \JSON_UNESCAPED_UNICODE));
         // Store files
         $this->log('Copying file: '.$single->image);
-        // copy($single->localImage, Path::join($this->directories['export_images'], $single->image));
+        copy($single->localImage, Path::join($this->directories['export_images'], $single->image));
         $this->log('Copying file: '.$single->filename);
-        // copy($single->localFilename, Path::join($this->directories['export_media'], $single->filename));
+        copy($single->localFilename, Path::join($this->directories['export_media'], $single->filename));
         // Add to main data
         $this->mainData['content'][] = $clone;
         $this->log('Single added!');
