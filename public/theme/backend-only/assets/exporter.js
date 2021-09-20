@@ -156,8 +156,11 @@ function statusUpdate() {
       // Sorting wont work because time can be a microsecond
       var latest = data[data.length - 1];
       if (latest.completed) {
-        notify('The export process has completed!', true);
+        notify('The export process has completed! The page will refresh.', true);
         setIsProcessing(false);
+        setTimeout(function() {
+          location.reload();
+        }, 2000);
       } else if (latest.isError) {
         notify(latest.message, false);
         setIsProcessing(false);
