@@ -1,0 +1,12 @@
+[
+{% for file in files %}
+    {
+        "date": "{{ file.date }}",
+        "filename": "{{ file.filename }}",
+        "filepath": "{{ absolute_url(file.filepath) }}",
+        "package": "{{ file.package }}",
+        "timestamp": {{ file.timestamp }}
+    }
+{% if not loop.last %},{% endif %}
+{% endfor %}
+]

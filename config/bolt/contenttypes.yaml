@@ -40,6 +40,14 @@ collections:
       group: content
       localize: true
       required: true
+    recommended:
+      label: 'Recommended?'
+      type: select
+      values:
+        no: No
+        yes: Yes
+      default: no
+      required: true
     slug:
       type: slug
       uses: title
@@ -50,20 +58,19 @@ collections:
       order: name
       label: Select Categories
       group: content
-      required: true
-    media:
+    episodes:
       multiple: true
       order: title
-      label: Add Media
+      label: Add Episodes
       group: content
-  taxonomy: [ media_type, tags ]
+  taxonomy: [ media_type, packages, tags ]
   icon_many: "fa:layer-group"
   icon_one: "fa:layer-group"
   locales: ['en', 'es']
 
-media:
-  name: Media
-  singular_name: Media
+episodes:
+  name: Episodes
+  singular_name: Episode
   fields:
     title:
       type: text
@@ -74,6 +81,7 @@ media:
     description:
       type: textarea
       group: content
+      localize: true
       required: true
     image:
       type: image
@@ -91,16 +99,60 @@ media:
         uses: title
         group: Meta
   relations:
+    collections:
+      multiple: false
+      order: title
+      label: Collection
+      required: true
+  taxonomy: [ media_type, tags ]
+  icon_many: "fa:photo-video"
+  icon_one: "fa:photo-video"
+  locales: ['en', 'es']
+
+singles:
+  name: Singles
+  singular_name: Single
+  fields:
+    title:
+      type: text
+      class: large
+      group: content
+      localize: true
+      required: true
+    description:
+      type: textarea
+      group: content
+      localize: true
+      required: true
+    image:
+      type: image
+      label: Feature Image
+      group: content
+      localize: true
+      required: true
+    file:
+      type: file
+      label: Media File
+      group: content
+      localize: true
+    recommended:
+      label: 'Recommended?'
+      type: select
+      values:
+        no: No
+        yes: Yes
+      default: no
+      required: true
+    slug:
+        type: slug
+        uses: title
+        group: Meta
+  relations:
     categories:
       multiple: true
       order: name
       label: Select Categories
-      required: true
-    collections:
-      multiple: false
-      order: title
-      label: Add to a Collection
-  taxonomy: [ media_type, tags ]
-  icon_many: "fa:photo-video"
-  icon_one: "fa:photo-video"
+  taxonomy: [ media_type, packages, tags ]
+  icon_many: "fa:square"
+  icon_one: "fa:square"
   locales: ['en', 'es']

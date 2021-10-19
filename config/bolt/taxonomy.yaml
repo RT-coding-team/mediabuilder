@@ -1,14 +1,21 @@
 # This file defines the different types of taxonomies in Bolt. See the
 # documentation for details: https://docs.bolt.cm/contenttypes/taxonomies
 
+packages:
+  slug: packages
+  singular_slug: package
+  behaves_like: tags
+  postfix: "Add packages for this type of content.When exported, the content will be contained in these packages. Start a new package by typing a comma or space."
+  allow_spaces: true
+  required: true
+
 tags:
-    slug: tags
-    singular_slug: tag
-    behaves_like: tags
-    postfix: "Add some freeform tags. Start a new tag by typing a comma or space."
-    allow_spaces: true
-    #listing_template: tag-listing.twig #custom template
-    required: false
+  slug: tags
+  singular_slug: tag
+  behaves_like: tags
+  postfix: "Add some freeform tags. Start a new tag by typing a comma or space."
+  allow_spaces: true
+  required: false
 
 media_type:
   name: Type of Media

@@ -1,0 +1,35 @@
+.message.message-success {
+    background-color: #1f8389;
+    color: #ffffff;
+    opacity: .75;
+}
+.message.message-error {
+    background-color: #f03535;
+    color: #ffffff;
+    opacity: .75;
+}
+.message.message-progress {
+    background-color: #667a81;
+    color: #ffffff;
+    opacity: .75;
+}
+.message {
+    margin-bottom: 1em;
+    padding: .50em 1em;
+}
+.message p {
+    padding: 0;
+    margin: 0 0 .5em 0;
+    font-style: italic;
+}
+.text-right {
+    text-align: right;
+}
+.btn-disabled {
+    opacity: .40;
+    cursor: none;
+}
+.timestamp {
+    text-align: right;
+    font-size: .85em;
+}
