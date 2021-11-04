@@ -88,9 +88,10 @@ class BaseStore
     {
         $mediaTypes = $content->getTaxonomies('media_type');
         $mediaType = 'other';
-        //if (\count($mediaTypes) > 0) {
-          //  $mediaType = $mediaTypes[0]->getName();
-        //}
+        if (\count($mediaTypes) > 0) {
+            $mediaType = $mediaTypes[0]->getName();
+        }
+
         return $mediaType;
     }
 
