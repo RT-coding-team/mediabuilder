@@ -19,8 +19,8 @@ exporter:
       default: false
   interface:
     en:
-      APP_NAME: 'Media Interface'
-      APP_LOGO: ''
+      APP_NAME: 'OpenWell'
+      APP_LOGO: 'imgs/logo.png'
       CATEGORIES_TITLE: 'Categories'
       EPISODES_TEXT: 'Episodes'
       LANGUAGE_BUTTON: 'Language'
@@ -37,8 +37,8 @@ exporter:
       RECOMMENDED_TEXT: 'Recommended'
       UNSUPPORTED_TEXT: 'Sorry, your browser does not support videos.'
     es:
-      APP_NAME: 'Interfaz de medios'
-      APP_LOGO: ''
+      APP_NAME: 'OpenWell'
+      APP_LOGO: 'imgs/logo.png'
       CATEGORIES_TITLE: 'Categorías'
       EPISODES_TEXT: 'Episodios'
       LANGUAGE_BUTTON: 'Idioma'

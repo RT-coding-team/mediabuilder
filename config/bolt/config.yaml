@@ -2,8 +2,8 @@
 # in the project root.
 
 # The name of the website
-sitename: MM Content Builder
-payoff: Build content for your MM Interface
+sitename: Open Well Content Cloud
+payoff: Build content for your Open Well Connectbox
 
 secret: '%env(APP_SECRET)%'
 
