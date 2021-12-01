@@ -139,9 +139,6 @@ class ExportCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-	ini_set('display_errors', '1');
-	ini_set('display_startup_errors', '1');
-	error_reporting(E_ALL);
         set_time_limit(0);
         $this->fileLogger = new FileLogger(
             $output,
@@ -155,16 +152,16 @@ class ExportCommand extends Command
         if (! $supported) {
             $supported = ExporterDefaults::SUPPORTED_LANGUAGES;
         }
-        //try {
+        try {
             $packages = $this->buildPackages($supported);
             $this->export($output, $packages, $supported);
 
             return Command::SUCCESS;
-        //} catch (\Throwable $e) {
-          //  $this->fileLogger->logError($e->getMessage());
+        } catch (\Throwable $e) {
+          $this->fileLogger->logError($e->getMessage());
 
-            //return Command::FAILURE;
-        //}
+          return Command::FAILURE;
+        }
     }
 
     /**
