@@ -10,7 +10,7 @@ use App\Exporter\Stores\CollectionsStore;
 use App\Exporter\Stores\PackagesStore;
 use App\Exporter\Stores\SinglesStore;
 use App\Exporter\Utilities\Config;
-use App\Exporter\Utilities\ContentExporter;
+use App\Exporter\Utilities\PackageExporter;
 use App\Exporter\Utilities\FileLogger;
 use Bolt\Repository\ContentRepository;
 use Bolt\Repository\RelationRepository;
@@ -59,9 +59,9 @@ class ExportCommand extends Command
     /**
      * The content exporter
      *
-     * @var ContentExporter
+     * @var PackageExporter
      */
-    private $contentExporter = null;
+    private $packageExporter = null;
 
     /**
      * The file logger for tracking progress
@@ -144,7 +144,7 @@ class ExportCommand extends Command
             $output,
             Path::join($this->directories['exports'], 'export_progress.json')
         );
-        $this->contentExporter = new ContentExporter(
+        $this->packageExporter = new PackageExporter(
             $this->directories['exports'],
             $this->fileLogger
         );
@@ -225,7 +225,7 @@ class ExportCommand extends Command
         }
         foreach ($packages as $package) {
             $this->fileLogger->log('Creating package: '.$package->title);
-            $this->contentExporter->start($package->title, $package->slug, $fileDateSuffix, $logo);
+            $this->packageExporter->start($package->title, $package->slug, $fileDateSuffix, $logo);
             foreach ($supported as $lang) {
                 if (! $package->hasContentForLocale($lang['bolt_locale_code'])) {
                     // We have no content for this locale so move along.
@@ -240,22 +240,22 @@ class ExportCommand extends Command
                 if (! $interface) {
                     $interface = $this->config->get('exporter/interface/en');
                 }
-                $this->contentExporter->startLocale($lang['bolt_locale_code'], $interface);
-                $this->contentExporter->addLanguage($language);
+                $this->packageExporter->startLocale($lang['bolt_locale_code'], $interface);
+                $this->packageExporter->addLanguage($language);
 
                 $collections = $package->getCollectionsByLocale($lang['bolt_locale_code']);
                 foreach ($collections as $collection) {
-                    $this->contentExporter->addCollection($collection);
+                    $this->packageExporter->addCollection($collection);
                 }
 
                 $singles = $package->getSinglesByLocale($lang['bolt_locale_code']);
                 foreach ($singles as $single) {
-                    $this->contentExporter->addSingle($single);
+                    $this->packageExporter->addSingle($single);
                 }
 
-                $this->contentExporter->finishLocale();
+                $this->packageExporter->finishLocale();
             }
-            $this->contentExporter->finish();
+            $this->packageExporter->finish();
             $this->fileLogger->log('Completed package: '.$package->title);
         }
         $this->fileLogger->logFinished('Content Exporter');

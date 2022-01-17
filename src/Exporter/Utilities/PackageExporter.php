@@ -11,9 +11,9 @@ use App\Exporter\Models\Single;
 use Webmozart\PathUtil\Path;
 
 /**
- * Exports the content
+ * Exports a package of content
  */
-class ContentExporter
+class PackageExporter
 {
     /**
      * The current locale
