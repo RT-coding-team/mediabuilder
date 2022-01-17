@@ -223,6 +223,9 @@ ready(function() {
       request.onload = function() {
         if (this.status >= 200 && this.status < 400) {
           notify('The export process has started!', true);
+          setTimeout(function() {
+            statusUpdate();
+          }, pollRate);
         } else {
           notify('There was a problem with the export process!', false);
           isProcessing = false;
