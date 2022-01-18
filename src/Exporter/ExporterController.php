@@ -74,9 +74,9 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
      */
     public function apiFiles(): Response
     {
-        $files = $this->getMedia();
+        $media = $this->getMedia();
         $response = $this->render('backend/exporter/api/files.twig', [
-            'files' => $files,
+            'media' => $media,
         ]);
         $response->headers->set('Content-Type', 'application/json');
 
