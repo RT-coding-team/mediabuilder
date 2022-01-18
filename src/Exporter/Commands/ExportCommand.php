@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Exporter\Commands;
 
 use App\Exporter\ExporterDefaults;
-use App\Exporter\Models\Language;
 use App\Exporter\Stores\CollectionsStore;
 use App\Exporter\Stores\PackagesStore;
 use App\Exporter\Stores\SinglesStore;
 use App\Exporter\Utilities\Config;
-use App\Exporter\Utilities\PackageExporter;
 use App\Exporter\Utilities\FileLogger;
+use App\Exporter\Utilities\PackageExporter;
 use Bolt\Repository\ContentRepository;
 use Bolt\Repository\RelationRepository;
 use Bolt\Repository\TaxonomyRepository;
@@ -145,35 +144,36 @@ class ExportCommand extends Command
             Path::join($this->directories['exports'], 'export_progress.json')
         );
         $this->packageExporter = new PackageExporter(
+            $this->directories['public'],
             $this->directories['exports'],
+            $this->config,
             $this->fileLogger
         );
-        $supported = $this->config->get('exporter/supported_languages');
-        if (! $supported) {
-            $supported = ExporterDefaults::SUPPORTED_LANGUAGES;
-        }
         try {
-            $packages = $this->buildPackages($supported);
-            $this->export($output, $packages, $supported);
+            $packages = $this->buildPackages();
+            $this->exportPackages($packages);
+            $this->fileLogger->logFinished('Content Exporter');
 
             return Command::SUCCESS;
         } catch (\Throwable $e) {
-          $this->fileLogger->logError($e->getMessage());
+            $this->fileLogger->logError($e->getMessage());
 
-          return Command::FAILURE;
+            return Command::FAILURE;
         }
     }
 
     /**
      * Build the packages to send to the exporter
      *
-     * @param array $supported The supported languages
-     *
      * @return array The array of packages
      */
-    private function buildPackages(array $supported): array
+    private function buildPackages(): array
     {
         $results = [];
+        $supported = $this->config->get('exporter/supported_languages');
+        if (! $supported) {
+            $supported = ExporterDefaults::SUPPORTED_LANGUAGES;
+        }
         $packages = $this->packagesStore->findAll();
         foreach ($packages as $package) {
             foreach ($supported as $lang) {
@@ -205,59 +205,14 @@ class ExportCommand extends Command
     /**
      * Export the packages
      *
-     * @param OutputInterface $output The output interface
      * @param array $packages The packages to export
-     * @param array $supported The supported languages
      */
-    private function export(OutputInterface $output, array $packages, array $supported): void
+    private function exportPackages(array $packages): void
     {
-        $fileDateSuffix = $this->config->get('exporter/file_date_suffix');
-        if (! $fileDateSuffix) {
-            $fileDateSuffix = ExporterDefaults::FILE_DATE_SUFFIX;
-        }
-        $logo = '';
-        $logoPath = $this->config->get('exporter/logo_public_path');
-        if ($logoPath) {
-            $logo = Path::canonicalize($this->directories['public'].$logoPath);
-            if (! file_exists($logo)) {
-                $logo = '';
-            }
-        }
         foreach ($packages as $package) {
             $this->fileLogger->log('Creating package: '.$package->title);
-            $this->packageExporter->start($package->title, $package->slug, $fileDateSuffix, $logo);
-            foreach ($supported as $lang) {
-                if (! $package->hasContentForLocale($lang['bolt_locale_code'])) {
-                    // We have no content for this locale so move along.
-                    continue;
-                }
-                $language = new Language(
-                    $lang['codes'],
-                    $lang['text'],
-                    (bool) $lang['default']
-                );
-                $interface = $this->config->get('exporter/interface/'.$lang['bolt_locale_code']);
-                if (! $interface) {
-                    $interface = $this->config->get('exporter/interface/en');
-                }
-                $this->packageExporter->startLocale($lang['bolt_locale_code'], $interface);
-                $this->packageExporter->addLanguage($language);
-
-                $collections = $package->getCollectionsByLocale($lang['bolt_locale_code']);
-                foreach ($collections as $collection) {
-                    $this->packageExporter->addCollection($collection);
-                }
-
-                $singles = $package->getSinglesByLocale($lang['bolt_locale_code']);
-                foreach ($singles as $single) {
-                    $this->packageExporter->addSingle($single);
-                }
-
-                $this->packageExporter->finishLocale();
-            }
-            $this->packageExporter->finish();
+            $this->packageExporter->export($package);
             $this->fileLogger->log('Completed package: '.$package->title);
         }
-        $this->fileLogger->logFinished('Content Exporter');
     }
 }

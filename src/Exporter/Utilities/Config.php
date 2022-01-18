@@ -40,10 +40,11 @@ class Config
      * Get the configuration using a path (ie. exporter/file_prefix)
      *
      * @param string $path The path to traverse
+     * @param mixed $default The default value to return if it is not found (default: null)
      *
      * @return mixed The value
      */
-    public function get($path)
+    public function get($path, $default = null)
     {
         $pieces = explode('/', $path);
         $content = $this->config;
@@ -51,7 +52,7 @@ class Config
             if (isset($content[$piece])) {
                 $content = $content[$piece];
             } else {
-                $content = null;
+                $content = $default;
             }
         }
 
