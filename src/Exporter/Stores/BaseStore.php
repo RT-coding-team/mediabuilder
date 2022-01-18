@@ -43,16 +43,25 @@ class BaseStore
     protected $relationRepository;
 
     /**
+     * The url for the site.
+     *
+     * @var string
+     */
+    protected $siteUrl = '';
+
+    /**
      * Build the store
      *
      * @param ContentRepository $contentRepository Bolt's Content Repository
      * @param RelationRepository $relationRepository Bolt's Related Repository
      * @param string $publicDirectory The public directory
+     * @param string $siteUrl The url for the site
      */
     public function __construct(
         ContentRepository $contentRepository,
         RelationRepository $relationRepository,
-        string $publicDirectory
+        string $publicDirectory,
+        string $siteUrl
     ) {
         if (! file_exists($publicDirectory)) {
             throw new \InvalidArgumentException('The public directory does not exist!');
@@ -60,6 +69,7 @@ class BaseStore
         $this->contentRepository = $contentRepository;
         $this->relationRepository = $relationRepository;
         $this->publicDir = $publicDirectory;
+        $this->siteUrl = $siteUrl;
     }
 
     /**
@@ -75,6 +85,25 @@ class BaseStore
         $file = $this->getTranslatedValue($content, $fieldName);
 
         return Path::join($this->publicDir, $file['path']);
+    }
+
+    /**
+     * Get the public url for a file field
+     *
+     * @param Content $content The content
+     * @param string $fieldName The field name
+     *
+     * @return string The url to the public file
+     */
+    protected function getFileFieldPublicUrl(Content $content, string $fieldName): string
+    {
+        if (empty($this->siteUrl)) {
+
+            return '';
+        }
+        $file = $this->getTranslatedValue($content, $fieldName);
+
+        return Path::join($this->siteUrl, $file['path']);
     }
 
     /**

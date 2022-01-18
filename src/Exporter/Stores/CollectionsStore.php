@@ -52,12 +52,14 @@ class CollectionsStore extends BaseStore
             return null;
         }
         $localImagePath = $this->getFileFieldPublicPath($content, 'image');
+        $imageUrl = $this->getFileFieldPublicUrl($content, 'image');
         $recommendedValue = $content->getFieldValue('recommended');
         $recommended = ('yes' === $recommendedValue);
         $collection = new Collection(
             $content->getSlug(),
             $this->getTranslatedValue($content, 'title'),
             $this->getTranslatedValue($content, 'description'),
+            $imageUrl,
             $this->getMediaType($content),
             $localImagePath,
             $recommended
@@ -125,14 +127,18 @@ class CollectionsStore extends BaseStore
             return null;
         }
         $localImagePath = $this->getFileFieldPublicPath($content, 'image');
+        $imageUrl = $this->getFileFieldPublicUrl($content, 'image');
         $localFilePath = $this->getFileFieldPublicPath($content, 'file');
+        $resourceUrl = $this->getFileFieldPublicUrl($content, 'file');
         $episode = new Episode(
             $content->getSlug(),
             $this->getTranslatedValue($content, 'title'),
             $this->getTranslatedValue($content, 'description'),
+            $imageUrl,
             $this->getMediaType($content),
             $localFilePath,
-            $localImagePath
+            $localImagePath,
+            $resourceUrl
         );
         $tags = $content->getTaxonomies('tags');
         foreach ($tags as $tag) {
