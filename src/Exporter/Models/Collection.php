@@ -116,7 +116,7 @@ class Collection
         if (! file_exists($localImage)) {
             throw new \InvalidArgumentException('The collection image does not exist!');
         }
-        $this->slug = $slug;
+        $this->slug = 'collection-'.$slug;
         $this->title = $title;
         $this->desc = $desc;
         $this->imageUrl = $imageUrl;
