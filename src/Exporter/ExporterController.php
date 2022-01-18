@@ -159,16 +159,23 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
         }
         foreach (glob($this->paths['export'].'/*.zip') as $filename) {
             $pieces = explode('_', basename($filename, '.zip'));
-            if (2 > \count($pieces)) {
+            $isSlim = false;
+            if (2 === \count($pieces)) {
+                $package = $this->packagesStore->findBySlug($pieces[0]);
+                $date = \DateTime::createFromFormat($dateFormat, $pieces[1]);
+            } else if (3 === \count($pieces)) {
+                $package = $this->packagesStore->findBySlug($pieces[1]);
+                $date = \DateTime::createFromFormat($dateFormat, $pieces[2]);
+                $isSlim = true;
+            } else {
                 continue;
             }
-            $package = $this->packagesStore->findBySlug($pieces[0]);
             $packageName = $package ? $package->title : '';
-            $date = \DateTime::createFromFormat($dateFormat, $pieces[1]);
             $files[] = [
                 'date' => $date->format('M j, Y g:i A'),
                 'filename' => basename($filename),
                 'filepath' => Path::join($this->paths['exportRelative'], basename($filename)),
+                'is_slim' => $isSlim,
                 'package' => $packageName,
                 'timestamp' => $date->getTimestamp(),
             ];

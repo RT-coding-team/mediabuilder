@@ -98,6 +98,10 @@ class ExportCommand extends Command
         parent::__construct();
 
         $this->config = new Config();
+        $siteUrl = $this->config->get('exporter/site_url');
+        if (! empty($siteUrl)) {
+            $siteUrl = rtrim($siteUrl, '/').'/';
+        }
         $publicPath = $this->config->get('exporter/public_path');
         if (! $publicPath) {
             $publicPath = ExporterDefaults::PUBLIC_PATH;
@@ -110,12 +114,14 @@ class ExportCommand extends Command
         $this->collectionsStore = new CollectionsStore(
             $contentRepository,
             $relationRepository,
-            $this->directories['public']
+            $this->directories['public'],
+            $siteUrl
         );
         $this->singlesStore = new SinglesStore(
             $contentRepository,
             $relationRepository,
-            $this->directories['public']
+            $this->directories['public'],
+            $siteUrl
         );
         $this->packagesStore = new PackagesStore($taxonomyRepository);
     }
@@ -211,7 +217,9 @@ class ExportCommand extends Command
     {
         foreach ($packages as $package) {
             $this->fileLogger->log('Creating package: '.$package->title);
-            $this->packageExporter->export($package);
+            $this->packageExporter->export($package, false);
+            // Create a slim version
+            $this->packageExporter->export($package, true);
             $this->fileLogger->log('Completed package: '.$package->title);
         }
     }

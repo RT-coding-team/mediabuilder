@@ -72,6 +72,14 @@ class PackageExporter
     private $fileLogger = null;
 
     /**
+     * Do we want to make a slim package? A slim package includes URLs for all
+     * the resources instead of adding them into the package.
+     *
+     * @var bool
+     */
+    private $isSlim = false;
+
+    /**
      * The main data for main.json
      *
      * @var array
@@ -147,10 +155,14 @@ class PackageExporter
      * export the provided package
      *
      * @param Package $package The package to export
+     * @param bool $isSlim do you want to slim down the package? Media files
+     * are removed and download URLs are added
      */
     public function export(
-        Package $package
+        Package $package,
+        bool $isSlim = false
     ): void {
+        $this->isSlim = $isSlim;
         $this->start($package->title, $package->slug);
         foreach ($this->supportedLanguages as $lang) {
             if (! $package->hasContentForLocale($lang['bolt_locale_code'])) {
@@ -204,6 +216,9 @@ class PackageExporter
         ];
         $this->languageData = [];
         $this->exportFilename = $filePrefix.'_'.$today->format($this->fileDateSuffix);
+        if ($this->isSlim) {
+            $this->exportFilename = 'slim_'.$this->exportFilename;
+        }
         $this->directories['export_root'] = Path::join($this->exportsDir, $this->exportFilename);
         if (! file_exists($this->directories['export_root'])) {
             mkdir($this->directories['export_root'], 0777, true);
@@ -247,7 +262,14 @@ class PackageExporter
         // Write the interface file
         $interfacePath = Path::join($this->directories['export_data'], 'interface.json');
         file_put_contents($interfacePath, json_encode($interface, \JSON_UNESCAPED_UNICODE));
+        if ($this->isSlim) {
+            // We do not need the directories
+            $this->directories['export_images'] = '';
+            $this->directories['export_media'] = '';
+            $this->log('Locale set up.');
 
+            return;
+        }
         $this->directories['export_images'] = Path::join($this->directories['locale_root'], 'images');
         if (! file_exists($this->directories['export_images'])) {
             mkdir($this->directories['export_images']);
@@ -268,35 +290,28 @@ class PackageExporter
     {
         // Add data file
         $this->log('Adding a new collection: '.$collection->title);
-        $clone = clone $collection;
-        unset($clone->localImage);
-        if (! $clone->recommended) {
-            unset($clone->recommended);
+        $this->log('Creating data file: '.$collection->slug.'.json');
+        $dataFilePath = Path::join($this->directories['export_data'], $collection->slug.'.json');
+        file_put_contents($dataFilePath, $collection->asJson(false, $this->isSlim));
+        // Add to main data
+        $this->mainData['content'][] = $collection->asArray(true, $this->isSlim);
+        if ($this->isSlim) {
+            $this->log('Collection added!');
+
+            return;
         }
-        foreach ($clone->episodes as $episode) {
+        // Add media files
+        $this->log('Adding media files to package.');
+        $this->log('Copying file: '.$collection->image);
+        copy($collection->localImage, Path::join($this->directories['export_images'], $collection->image));
+        foreach ($collection->episodes as $episode) {
             // Store episode files
             $this->log('Adding a new episode: '.$episode->title);
             $this->log('Copying file: '.$episode->image);
             copy($episode->localImage, Path::join($this->directories['export_images'], $episode->image));
             $this->log('Copying file: '.$episode->filename);
             copy($episode->localFilename, Path::join($this->directories['export_media'], $episode->filename));
-            unset($episode->localImage);
-            unset($episode->localFilename);
         }
-        $this->log('Creating data file: '.$clone->slug.'.json');
-        $dataFilePath = Path::join($this->directories['export_data'], $clone->slug.'.json');
-        file_put_contents($dataFilePath, json_encode($clone, \JSON_UNESCAPED_UNICODE));
-        // Store files
-        $this->log('Copying file: '.$collection->image);
-        copy($collection->localImage, Path::join($this->directories['export_images'], $collection->image));
-        // Add to main data
-        $mainClone = clone $collection;
-        unset($mainClone->localImage);
-        unset($mainClone->episodes);
-        if (! $mainClone->recommended) {
-            unset($mainClone->recommended);
-        }
-        $this->mainData['content'][] = $mainClone;
         $this->log('Collection added!');
     }
 
@@ -328,22 +343,21 @@ class PackageExporter
     {
         // Add data file
         $this->log('Adding a new single: '.$single->title);
-        $clone = clone $single;
-        unset($clone->localImage);
-        unset($clone->localFilename);
-        if (! $clone->recommended) {
-            unset($clone->recommended);
+        $this->log('Creating data file: '.$single->slug.'.json');
+        $dataFilePath = Path::join($this->directories['export_data'], $single->slug.'.json');
+        file_put_contents($dataFilePath, $single->asJson($this->isSlim));
+        $this->mainData['content'][] = $single->asArray($this->isSlim);
+        if ($this->isSlim) {
+            $this->log('Single added!');
+
+            return;
         }
-        $this->log('Creating data file: '.$clone->slug.'.json');
-        $dataFilePath = Path::join($this->directories['export_data'], $clone->slug.'.json');
-        file_put_contents($dataFilePath, json_encode($clone, \JSON_UNESCAPED_UNICODE));
-        // Store files
+        // Add media files
+        $this->log('Adding media files to package.');
         $this->log('Copying file: '.$single->image);
         copy($single->localImage, Path::join($this->directories['export_images'], $single->image));
         $this->log('Copying file: '.$single->filename);
         copy($single->localFilename, Path::join($this->directories['export_media'], $single->filename));
-        // Add to main data
-        $this->mainData['content'][] = $clone;
         $this->log('Single added!');
     }
 
