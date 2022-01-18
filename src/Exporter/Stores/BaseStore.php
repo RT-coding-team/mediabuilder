@@ -98,7 +98,6 @@ class BaseStore
     protected function getFileFieldPublicUrl(Content $content, string $fieldName): string
     {
         if (empty($this->siteUrl)) {
-
             return '';
         }
         $file = $this->getTranslatedValue($content, $fieldName);

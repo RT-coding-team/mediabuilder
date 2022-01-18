@@ -177,6 +177,7 @@ class Collection
      *
      * @param bool $isMainFile Is this for the main file?
      * @param bool $isSlim Is this for the slim packaging?
+     *
      * @return array The array of the object
      */
     public function asArray(bool $isMainFile = false, bool $isSlim = false): array
@@ -189,7 +190,7 @@ class Collection
             'mediaType' => $this->mediaType,
             'slug' => $this->slug,
             'tags' => $this->tags,
-            'title' => $this->title
+            'title' => $this->title,
         ];
         if ($this->recommended) {
             $data['recommended'] = true;
@@ -209,11 +210,11 @@ class Collection
      *
      * @param bool $isMainFile Is this for the main file?
      * @param bool $isSlim Is this for the slim packaging?
+     *
      * @return string The JSON string
      */
     public function asJson(bool $isMainFile = false, bool $isSlim = false): string
     {
-
         return json_encode($this->asArray($isMainFile, $isSlim), \JSON_UNESCAPED_UNICODE);
     }
 

@@ -198,6 +198,7 @@ class Single
      * Get an array for this object
      *
      * @param bool $isSlim Is this for the slim packaging?
+     *
      * @return array The array of the object
      */
     public function asArray(bool $isSlim = false): array
@@ -211,7 +212,7 @@ class Single
             'mimeType' => $this->mimeType,
             'slug' => $this->slug,
             'tags' => $this->tags,
-            'title' => $this->title
+            'title' => $this->title,
         ];
         if ($this->recommended) {
             $data['recommended'] = true;
@@ -228,11 +229,11 @@ class Single
      * Get a JSON string for this object
      *
      * @param bool $isSlim Is this for the slim packaging?
+     *
      * @return string The JSON string
      */
     public function asJson(bool $isSlim = false): string
     {
-
         return json_encode($this->asArray($isSlim), \JSON_UNESCAPED_UNICODE);
     }
 

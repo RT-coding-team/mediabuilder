@@ -165,7 +165,7 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
                 $slug = $pieces[0];
                 $package = $this->packagesStore->findBySlug($slug);
                 $date = \DateTime::createFromFormat($dateFormat, $pieces[1]);
-            } else if (3 === \count($pieces)) {
+            } elseif (3 === \count($pieces)) {
                 $slug = $pieces[1];
                 $package = $this->packagesStore->findBySlug($slug);
                 $date = \DateTime::createFromFormat($dateFormat, $pieces[2]);
@@ -174,7 +174,7 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
                 continue;
             }
             $packageName = $package ? $package->title : '';
-            if (! array_key_exists($slug, $files)) {
+            if (! \array_key_exists($slug, $files)) {
                 $files[$slug] = [];
             }
             $files[$slug][] = [
@@ -193,8 +193,8 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
             });
             $sorted[$key] = $val;
         }
-
         ksort($sorted);
+
         return $sorted;
     }
 
