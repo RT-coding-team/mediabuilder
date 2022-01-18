@@ -74,7 +74,7 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
      */
     public function apiFiles(): Response
     {
-        $files = $this->getFiles();
+        $files = $this->getMedia();
         $response = $this->render('backend/exporter/api/files.twig', [
             'files' => $files,
         ]);
@@ -138,19 +138,19 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
         if (! $this->isAllowed()) {
             return $this->redirectToRoute('bolt_dashboard');
         }
-        $files = $this->getFiles();
+        $media = $this->getMedia();
 
         return $this->render('backend/exporter/index.twig', [
-            'files' => $files,
+            'media' => $media,
         ]);
     }
 
     /**
-     * Get the files
+     * Get the media (keyed to slug)
      *
-     * @return array The current files
+     * @return array The current media
      */
-    private function getFiles(): array
+    private function getMedia(): array
     {
         $files = [];
         $dateFormat = $this->exportConfig->get('exporter/file_date_suffix');
@@ -160,18 +160,24 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
         foreach (glob($this->paths['export'].'/*.zip') as $filename) {
             $pieces = explode('_', basename($filename, '.zip'));
             $isSlim = false;
+            $slug = '';
             if (2 === \count($pieces)) {
-                $package = $this->packagesStore->findBySlug($pieces[0]);
+                $slug = $pieces[0];
+                $package = $this->packagesStore->findBySlug($slug);
                 $date = \DateTime::createFromFormat($dateFormat, $pieces[1]);
             } else if (3 === \count($pieces)) {
-                $package = $this->packagesStore->findBySlug($pieces[1]);
+                $slug = $pieces[1];
+                $package = $this->packagesStore->findBySlug($slug);
                 $date = \DateTime::createFromFormat($dateFormat, $pieces[2]);
                 $isSlim = true;
             } else {
                 continue;
             }
             $packageName = $package ? $package->title : '';
-            $files[] = [
+            if (! array_key_exists($slug, $files)) {
+                $files[$slug] = [];
+            }
+            $files[$slug][] = [
                 'date' => $date->format('M j, Y g:i A'),
                 'filename' => basename($filename),
                 'filepath' => Path::join($this->paths['exportRelative'], basename($filename)),
@@ -180,11 +186,16 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
                 'timestamp' => $date->getTimestamp(),
             ];
         }
-        uasort($files, function ($a, $b) {
-            return $b['timestamp'] <=> $a['timestamp'];
-        });
+        $sorted = [];
+        foreach ($files as $key => $val) {
+            uasort($val, function ($a, $b) {
+                return $b['timestamp'] <=> $a['timestamp'];
+            });
+            $sorted[$key] = $val;
+        }
 
-        return $files;
+        ksort($sorted);
+        return $sorted;
     }
 
     /**
