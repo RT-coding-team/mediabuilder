@@ -53,14 +53,18 @@ class SinglesStore extends BaseStore
         $recommendedValue = $content->getFieldValue('recommended');
         $recommended = ('yes' === $recommendedValue);
         $localImagePath = $this->getFileFieldPublicPath($content, 'image');
+        $imageUrl = $this->getFileFieldPublicUrl($content, 'image');
         $localFilePath = $this->getFileFieldPublicPath($content, 'file');
+        $resourceUrl = $this->getFileFieldPublicUrl($content, 'file');
         $single = new Single(
             $content->getSlug(),
             $this->getTranslatedValue($content, 'title'),
             $this->getTranslatedValue($content, 'description'),
+            $imageUrl,
             $this->getMediaType($content),
             $localFilePath,
             $localImagePath,
+            $resourceUrl,
             $recommended
         );
         $packages = $content->getTaxonomies('packages');

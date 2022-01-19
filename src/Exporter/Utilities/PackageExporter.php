@@ -7,20 +7,41 @@ namespace App\Exporter\Utilities;
 use App\Exporter\ExporterDefaults;
 use App\Exporter\Models\Collection;
 use App\Exporter\Models\Language;
+use App\Exporter\Models\Package;
 use App\Exporter\Models\Single;
 use Webmozart\PathUtil\Path;
 
 /**
- * Exports the content
+ * Exports a package of content
  */
-class ContentExporter
+class PackageExporter
 {
+    /**
+     * Our library for retrieving configuration settings.
+     *
+     * @var Config
+     */
+    private $config = null;
+
     /**
      * The current locale
      *
      * @var string
      */
     private $currentLocale = 'en';
+
+    /**
+     * The directories we use for exporting
+     *
+     * @var array
+     */
+    private $directories = [
+        'export_root' => '',
+        'locale_root' => '',
+        'export_data' => '',
+        'export_images' => '',
+        'export_media' => '',
+    ];
 
     /**
      * The directory where exports are stored.
@@ -37,6 +58,13 @@ class ContentExporter
     private $exportFilename = '';
 
     /**
+     * The file suffix
+     *
+     * @var string
+     */
+    private $fileDateSuffix = '';
+
+    /**
      * Our file logger
      *
      * @var FileLogger
@@ -44,17 +72,12 @@ class ContentExporter
     private $fileLogger = null;
 
     /**
-     * The directories we use for exporting
+     * Do we want to make a slim package? A slim package includes URLs for all
+     * the resources instead of adding them into the package.
      *
-     * @var array
+     * @var bool
      */
-    private $directories = [
-        'export_root' => '',
-        'locale_root' => '',
-        'export_data' => '',
-        'export_images' => '',
-        'export_media' => '',
-    ];
+    private $isSlim = false;
 
     /**
      * The main data for main.json
@@ -71,13 +94,6 @@ class ContentExporter
     private $languageData = [];
 
     /**
-     * The path to the logo file
-     *
-     * @var string
-     */
-    private $logoPath = '';
-
-    /**
      * An array of locales provided by the user
      *
      * @var array
@@ -85,19 +101,99 @@ class ContentExporter
     private $providedLocales = [];
 
     /**
+     * The path to the site logo file.
+     *
+     * @var string
+     */
+    private $siteLogoPath = '';
+
+    /**
+     * An array of supported languages.
+     *
+     * @var array
+     */
+    private $supportedLanguages = [];
+
+    /**
      * Build the exporter
      *
+     * @param string $publicPath The path to the public directory
      * @param string $exportsDir The exports directory
+     * @param App\Exporter\Utilities\Config $config The configuration class
+     * @param App\Exporter\Utilities\FileLogger $fileLogger The logger class
      */
     public function __construct(
+        string $publicPath,
         string $exportsDir,
+        Config $config,
         FileLogger $fileLogger
     ) {
         if (! file_exists($exportsDir)) {
             throw new \InvalidArgumentException('The exports directory does not exist!');
         }
         $this->exportsDir = $exportsDir;
+        $this->config = $config;
+        $this->fileDateSuffix = $this->config->get(
+            'exporter/file_date_suffix',
+            ExporterDefaults::FILE_DATE_SUFFIX
+        );
         $this->fileLogger = $fileLogger;
+        $logoPath = $this->config->get('exporter/logo_public_path');
+        if ($logoPath) {
+            $logo = Path::canonicalize($publicPath.$logoPath);
+            if (file_exists($logo)) {
+                $this->siteLogoPath = $logo;
+            }
+        }
+        $this->supportedLanguages = $this->config->get(
+            'exporter/supported_languages',
+            ExporterDefaults::SUPPORTED_LANGUAGES
+        );
+    }
+
+    /**
+     * export the provided package
+     *
+     * @param Package $package The package to export
+     * @param bool $isSlim do you want to slim down the package? Media files
+     * are removed and download URLs are added
+     */
+    public function export(
+        Package $package,
+        bool $isSlim = false
+    ): void {
+        $this->isSlim = $isSlim;
+        $this->start($package->title, $package->slug);
+        foreach ($this->supportedLanguages as $lang) {
+            if (! $package->hasContentForLocale($lang['bolt_locale_code'])) {
+                // We have no content for this locale so move along.
+                continue;
+            }
+            $language = new Language(
+                $lang['codes'],
+                $lang['text'],
+                (bool) $lang['default']
+            );
+            $interface = $this->config->get('exporter/interface/'.$lang['bolt_locale_code']);
+            if (! $interface) {
+                $interface = $this->config->get('exporter/interface/en');
+            }
+            $this->startLocale($lang['bolt_locale_code'], $interface);
+            $this->addLanguage($language);
+
+            $collections = $package->getCollectionsByLocale($lang['bolt_locale_code']);
+            foreach ($collections as $collection) {
+                $this->addCollection($collection);
+            }
+
+            $singles = $package->getSinglesByLocale($lang['bolt_locale_code']);
+            foreach ($singles as $single) {
+                $this->addSingle($single);
+            }
+
+            $this->finishLocale();
+        }
+        $this->finish();
     }
 
     /**
@@ -105,16 +201,12 @@ class ContentExporter
      *
      * @param string $itemName The item name for this export
      * @param string $filePrefix The name to append to the archive
-     * @param string $fileDateSuffix A date format to append to the end of the archive (default: ExporterDefaults::FILE_DATE_SUFFIX)
-     * @param string $logo The path to the current logo
      *
      * @see https://www.php.net/manual/en/datetime.format.php
      */
-    public function start(
+    private function start(
         string $itemName,
-        string $filePrefix,
-        string $fileDateSuffix = ExporterDefaults::FILE_DATE_SUFFIX,
-        string $logo = ''
+        string $filePrefix
     ): void {
         $this->log('Export started!');
         $today = new \DateTime();
@@ -123,14 +215,22 @@ class ContentExporter
             'content' => [],
         ];
         $this->languageData = [];
-        $this->exportFilename = $filePrefix.'_'.$today->format($fileDateSuffix);
+        $this->exportFilename = $filePrefix.'_'.$today->format($this->fileDateSuffix);
+        if ($this->isSlim) {
+            $this->exportFilename = 'slim_'.$this->exportFilename;
+        }
         $this->directories['export_root'] = Path::join($this->exportsDir, $this->exportFilename);
         if (! file_exists($this->directories['export_root'])) {
             mkdir($this->directories['export_root'], 0777, true);
         }
-        if ('' !== $logo && (file_exists($logo))) {
-            copy($logo, Path::join($this->directories['export_root'], basename($logo)));
-            $this->logoPath = 'content/'.basename($logo);
+        if ('' !== $this->siteLogoPath) {
+            copy(
+                $this->siteLogoPath,
+                Path::join(
+                    $this->directories['export_root'],
+                    basename($this->siteLogoPath)
+                )
+            );
         }
         $this->log('Setup complete.');
     }
@@ -141,11 +241,13 @@ class ContentExporter
      * @param string $locale The locale
      * @param array $interface The data stored in the interface file
      */
-    public function startLocale($locale = 'en', $interface = []): void
-    {
+    private function startLocale(
+        $locale = 'en',
+        $interface = []
+    ): void {
         $this->log('Start Locale: '.$locale);
         $this->currentLocale = $locale;
-        $interface['APP_LOGO'] = $this->logoPath;
+        $interface['APP_LOGO'] = 'content/'.basename($this->siteLogoPath);
         if (! \in_array($this->currentLocale, $this->providedLocales, true)) {
             $this->providedLocales[] = $this->currentLocale;
         }
@@ -160,7 +262,14 @@ class ContentExporter
         // Write the interface file
         $interfacePath = Path::join($this->directories['export_data'], 'interface.json');
         file_put_contents($interfacePath, json_encode($interface, \JSON_UNESCAPED_UNICODE));
+        if ($this->isSlim) {
+            // We do not need the directories
+            $this->directories['export_images'] = '';
+            $this->directories['export_media'] = '';
+            $this->log('Locale set up.');
 
+            return;
+        }
         $this->directories['export_images'] = Path::join($this->directories['locale_root'], 'images');
         if (! file_exists($this->directories['export_images'])) {
             mkdir($this->directories['export_images']);
@@ -177,39 +286,32 @@ class ContentExporter
      *
      * @param Collection $collection The collection to add
      */
-    public function addCollection(Collection $collection): void
+    private function addCollection(Collection $collection): void
     {
         // Add data file
         $this->log('Adding a new collection: '.$collection->title);
-        $clone = clone $collection;
-        unset($clone->localImage);
-        if (! $clone->recommended) {
-            unset($clone->recommended);
+        $this->log('Creating data file: '.$collection->slug.'.json');
+        $dataFilePath = Path::join($this->directories['export_data'], $collection->slug.'.json');
+        file_put_contents($dataFilePath, $collection->asJson(false, $this->isSlim));
+        // Add to main data
+        $this->mainData['content'][] = $collection->asArray(true, $this->isSlim);
+        if ($this->isSlim) {
+            $this->log('Collection added!');
+
+            return;
         }
-        foreach ($clone->episodes as $episode) {
+        // Add media files
+        $this->log('Adding media files to package.');
+        $this->log('Copying file: '.$collection->image);
+        copy($collection->localImage, Path::join($this->directories['export_images'], $collection->image));
+        foreach ($collection->episodes as $episode) {
             // Store episode files
             $this->log('Adding a new episode: '.$episode->title);
             $this->log('Copying file: '.$episode->image);
             copy($episode->localImage, Path::join($this->directories['export_images'], $episode->image));
             $this->log('Copying file: '.$episode->filename);
             copy($episode->localFilename, Path::join($this->directories['export_media'], $episode->filename));
-            unset($episode->localImage);
-            unset($episode->localFilename);
         }
-        $this->log('Creating data file: '.$clone->slug.'.json');
-        $dataFilePath = Path::join($this->directories['export_data'], $clone->slug.'.json');
-        file_put_contents($dataFilePath, json_encode($clone, \JSON_UNESCAPED_UNICODE));
-        // Store files
-        $this->log('Copying file: '.$collection->image);
-        copy($collection->localImage, Path::join($this->directories['export_images'], $collection->image));
-        // Add to main data
-        $mainClone = clone $collection;
-        unset($mainClone->localImage);
-        unset($mainClone->episodes);
-        if (! $mainClone->recommended) {
-            unset($mainClone->recommended);
-        }
-        $this->mainData['content'][] = $mainClone;
         $this->log('Collection added!');
     }
 
@@ -218,7 +320,7 @@ class ContentExporter
      *
      * @param Language $language The language to add
      */
-    public function addLanguage(Language $language): void
+    private function addLanguage(Language $language): void
     {
         $exists = false;
         foreach ($this->languageData as $lang) {
@@ -237,33 +339,32 @@ class ContentExporter
      *
      * @param Single $single The single to add
      */
-    public function addSingle(Single $single): void
+    private function addSingle(Single $single): void
     {
         // Add data file
         $this->log('Adding a new single: '.$single->title);
-        $clone = clone $single;
-        unset($clone->localImage);
-        unset($clone->localFilename);
-        if (! $clone->recommended) {
-            unset($clone->recommended);
+        $this->log('Creating data file: '.$single->slug.'.json');
+        $dataFilePath = Path::join($this->directories['export_data'], $single->slug.'.json');
+        file_put_contents($dataFilePath, $single->asJson($this->isSlim));
+        $this->mainData['content'][] = $single->asArray($this->isSlim);
+        if ($this->isSlim) {
+            $this->log('Single added!');
+
+            return;
         }
-        $this->log('Creating data file: '.$clone->slug.'.json');
-        $dataFilePath = Path::join($this->directories['export_data'], $clone->slug.'.json');
-        file_put_contents($dataFilePath, json_encode($clone, \JSON_UNESCAPED_UNICODE));
-        // Store files
+        // Add media files
+        $this->log('Adding media files to package.');
         $this->log('Copying file: '.$single->image);
         copy($single->localImage, Path::join($this->directories['export_images'], $single->image));
         $this->log('Copying file: '.$single->filename);
         copy($single->localFilename, Path::join($this->directories['export_media'], $single->filename));
-        // Add to main data
-        $this->mainData['content'][] = $clone;
         $this->log('Single added!');
     }
 
     /**
      * Finish the locale
      */
-    public function finishLocale(): void
+    private function finishLocale(): void
     {
         $this->log('Completing the current locale: '.$this->currentLocale);
         $this->log('Creating data file: main.json');
@@ -276,7 +377,7 @@ class ContentExporter
     /**
      * Finish up the exporting
      */
-    public function finish(): void
+    private function finish(): void
     {
         $this->log('Completing export!');
         $this->log('Creating languages file: languages.json');
@@ -304,7 +405,7 @@ class ContentExporter
      * @param string $message The message to log
      * @param bool $isError Are we dealing with an error? (default: false)
      */
-    public function log(string $message, $isError = false): void
+    private function log(string $message, $isError = false): void
     {
         if (! $this->fileLogger) {
             echo $message."\r\n";

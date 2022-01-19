@@ -38,6 +38,13 @@ class Collection
     public $image = '';
 
     /**
+     * The remote URL to download the image.
+     *
+     * @var string
+     */
+    public $imageUrl = '';
+
+    /**
      * The path to the local image of the collection
      *
      * @var string
@@ -92,6 +99,7 @@ class Collection
      * @param string $slug The slug for the Collection
      * @param string $title The title for the Collection
      * @param string $desc The description for the Collection
+     * @param string $imageUrl The url to the image for the Collection
      * @param string $mediaType The type of media for the Collection
      * @param string $localImage The path to the local image
      * @param bool $recommended Is it a recommended collection? (default: false)
@@ -100,6 +108,7 @@ class Collection
         string $slug,
         string $title,
         string $desc,
+        string $imageUrl,
         string $mediaType,
         string $localImage,
         $recommended = false
@@ -107,9 +116,10 @@ class Collection
         if (! file_exists($localImage)) {
             throw new \InvalidArgumentException('The collection image does not exist!');
         }
-        $this->slug = $slug;
+        $this->slug = 'collection-'.$slug;
         $this->title = $title;
         $this->desc = $desc;
+        $this->imageUrl = $imageUrl;
         $this->mediaType = $mediaType;
         $this->localImage = $localImage;
         $this->image = basename($localImage);
@@ -160,6 +170,52 @@ class Collection
         if (! \in_array($tag, $this->tags, true)) {
             $this->tags[] = $tag;
         }
+    }
+
+    /**
+     * Get an array for this object
+     *
+     * @param bool $isMainFile Is this for the main file?
+     * @param bool $isSlim Is this for the slim packaging?
+     *
+     * @return array The array of the object
+     */
+    public function asArray(bool $isMainFile = false, bool $isSlim = false): array
+    {
+        $data = [
+            'categories' => $this->categories,
+            'desc' => $this->desc,
+            'episodes' => [],
+            'image' => $this->image,
+            'mediaType' => $this->mediaType,
+            'slug' => $this->slug,
+            'tags' => $this->tags,
+            'title' => $this->title,
+        ];
+        if ($this->recommended) {
+            $data['recommended'] = true;
+        }
+        if ($isSlim) {
+            $data['imageUrl'] = $this->imageUrl;
+        }
+        foreach ($this->episodes as $episode) {
+            $data['episodes'][] = $episode->asArray($isMainFile, $isSlim);
+        }
+
+        return $data;
+    }
+
+    /**
+     * Get a JSON string for this object
+     *
+     * @param bool $isMainFile Is this for the main file?
+     * @param bool $isSlim Is this for the slim packaging?
+     *
+     * @return string The JSON string
+     */
+    public function asJson(bool $isMainFile = false, bool $isSlim = false): string
+    {
+        return json_encode($this->asArray($isMainFile, $isSlim), \JSON_UNESCAPED_UNICODE);
     }
 
     /**
