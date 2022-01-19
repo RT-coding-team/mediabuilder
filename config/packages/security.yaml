@@ -2,6 +2,7 @@ security:
     role_hierarchy:
         ROLE_DEVELOPER:
             - ROLE_ADMIN
+            - ROLE_WEBSERVICE
             - ROLE_CAN_SWITCH_USER
         ROLE_ADMIN:
             - ROLE_CHIEF_EDITOR
