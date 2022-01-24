@@ -24,6 +24,7 @@ courses:
       group: content
       # If you add more file types, make sure they are available in config.yml accept_file_types
       extensions: [ html5, h5p, mbz, zip ]
+      required: true
   taxonomy: [ tags ]
   icon_many: "fa:chalkboard-teacher"
   icon_one: "fa:chalkboard-teacher"
