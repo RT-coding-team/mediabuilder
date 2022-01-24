@@ -35,6 +35,11 @@ exporter_api:
   defaults:
     _controller: App\Exporter\ExporterController::apiFiles
 
+api_courses:
+  path: /content-api/courses.json
+  defaults:
+    _controller: App\ContentAPI\ContentAPIController::courses
+
 project:
   resource: '../src/Controller'
   prefix: /
