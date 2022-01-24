@@ -3,12 +3,9 @@
     "license": "proprietary",
     "require": {
         "php": ">=7.2.9 || ^8.0",
-        "bobdenotter/configuration-notices": "^1.0",
-        "bobdenotter/weatherwidget": "^1.1",
         "bolt/article": "^1.0",
         "bolt/assets": "^5.0",
         "bolt/core": "^5.0",
-        "bolt/newswidget": "^1.1",
         "bolt/redactor": "^1.0",
         "bolt/themes": "^3.3",
         "nelmio/security-bundle": "^2.10",
