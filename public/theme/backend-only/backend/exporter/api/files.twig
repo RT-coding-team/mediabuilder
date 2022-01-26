@@ -9,7 +9,7 @@
             "package": "{{ file.package }}",
             "timestamp": {{ file.timestamp }}
         }
-        {% if not loop.last %},{% endif %}
+    {% if (loop.last) and (loop.parent.loop.last) %}{% else %},{% endif %}
     {% endfor %}
 {% endfor %}
 ]
