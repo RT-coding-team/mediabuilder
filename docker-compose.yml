@@ -51,17 +51,6 @@ services:
         published: 8080
         protocol: tcp
 
-  h2-proxy:
-    container_name: h2-proxy
-    build:
-      context: ./docker/h2-proxy
-    depends_on:
-      - nginx
-    ports:
-      - target: 8443
-        published: 8443
-        protocol: tcp
-
   mailcatcher:
     container_name: mailcatcher
     image: schickling/mailcatcher
