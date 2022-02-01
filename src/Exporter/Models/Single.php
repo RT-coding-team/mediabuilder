@@ -45,6 +45,13 @@ class Single
     public $image = '';
 
     /**
+     * The remote URL to download the image.
+     *
+     * @var string
+     */
+    public $imageUrl = '';
+
+    /**
      * The path to the local image of the single
      *
      * @var string
@@ -71,6 +78,13 @@ class Single
      * @var bool
      */
     public $recommended = false;
+
+    /**
+     * The remote URL for the resource
+     *
+     * @var string
+     */
+    public $resourceUrl = '';
 
     /**
      * The slug for the single
@@ -106,18 +120,22 @@ class Single
      * @param string $slug The slug
      * @param string $title The title
      * @param string $desc The description
+     * @param string $imageUrl The URL to the image
      * @param string $mediaType The type of media
      * @param string $localFilename The path to the local file
      * @param string $localImage The path to the local image
+     * @param string $resourceUrl The URL to the resource file
      * @param bool $recommended Is it recommended? (default: false)
      */
     public function __construct(
         string $slug,
         string $title,
         string $desc,
+        string $imageUrl,
         string $mediaType,
         string $localFilename,
         string $localImage,
+        string $resourceUrl,
         $recommended = false
     ) {
         if (! file_exists($localImage)) {
@@ -132,9 +150,11 @@ class Single
         $this->mediaType = $mediaType;
         $this->localImage = $localImage;
         $this->image = basename($localImage);
+        $this->imageUrl = $imageUrl;
         $this->localFilename = $localFilename;
         $this->filename = basename($localFilename);
         $this->mimeType = mime_content_type($localFilename);
+        $this->resourceUrl = $resourceUrl;
         $this->recommended = $recommended;
     }
 
@@ -172,6 +192,49 @@ class Single
         if (! \in_array($tag, $this->tags, true)) {
             $this->tags[] = $tag;
         }
+    }
+
+    /**
+     * Get an array for this object
+     *
+     * @param bool $isSlim Is this for the slim packaging?
+     *
+     * @return array The array of the object
+     */
+    public function asArray(bool $isSlim = false): array
+    {
+        $data = [
+            'categories' => $this->categories,
+            'desc' => $this->desc,
+            'filename' => $this->filename,
+            'image' => $this->image,
+            'mediaType' => $this->mediaType,
+            'mimeType' => $this->mimeType,
+            'slug' => $this->slug,
+            'tags' => $this->tags,
+            'title' => $this->title,
+        ];
+        if ($this->recommended) {
+            $data['recommended'] = true;
+        }
+        if ($isSlim) {
+            $data['imageUrl'] = $this->imageUrl;
+            $data['resourceUrl'] = $this->resourceUrl;
+        }
+
+        return $data;
+    }
+
+    /**
+     * Get a JSON string for this object
+     *
+     * @param bool $isSlim Is this for the slim packaging?
+     *
+     * @return string The JSON string
+     */
+    public function asJson(bool $isSlim = false): string
+    {
+        return json_encode($this->asArray($isSlim), \JSON_UNESCAPED_UNICODE);
     }
 
     /**

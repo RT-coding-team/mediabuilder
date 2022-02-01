@@ -7,7 +7,7 @@
 # List of roles that are presented in the list of options when editing a user.
 # Roles that are not in this list are left 'as is' when editing users.
 # Note: ROLE_USER is assigned to Bolt Entity Users if no roles have been set.
-assignable_roles: [ROLE_DEVELOPER, ROLE_ADMIN, ROLE_CHIEF_EDITOR, ROLE_EDITOR, ROLE_USER]
+assignable_roles: [ROLE_DEVELOPER, ROLE_ADMIN, ROLE_CHIEF_EDITOR, ROLE_EDITOR, ROLE_USER, ROLE_WEBSERVICE]
 
 # These permissions are the 'global' permissions; these are not tied
 # to any content types, but rather apply to global, non-content activity in
@@ -46,6 +46,9 @@ global:
     list_files:config: [ ROLE_ADMIN ] # should probably not be used?
     list_files:files: [ ROLE_EDITOR ] # get list of files (images?) available for use as site-content
     list_files:themes: [ ROLE_ADMIN ] # should probably not be used?
+    api:get: [ ROLE_WEBSERVICE ] # allow read access to Bolt's RESTful and GraphQL API
+    api:post: [ ROLE_WEBSERVICE ] # allow write access to Bolt's RESTful and GraphQL API
+    api:delete: [ ROLE_WEBSERVICE ] # allow delete access to Bolt's RESTful and GraphQL API
 
 
 # For content type related actions, permissions can be set individually for
@@ -105,7 +108,7 @@ contenttype-base:
     change-ownership: [ ROLE_CHIEF_EDITOR ]
     view: [ ROLE_CHIEF_EDITOR ] # = show in menu, show listings, open 'edit' view without actually being able to edit, any of the other permissions always imply 'view'
 
-# these permissions are used as a default for contenttypes, they are added to the base permissions 
+# these permissions are used as a default for contenttypes, they are added to the base permissions
 # you can override these settings per contenttype by adding it to the `contenttypes:` array
 contenttype-default:
     edit: [ ROLE_EDITOR, CONTENT_OWNER ]
@@ -141,7 +144,7 @@ contenttypes:
 #        edit: [ ROLE_EDITOR, CONTENT_OWNER ]
 #        create: [ ROLE_EDITOR ]
 #        change-ownership: [ CONTENT_OWNER ]
-#        view: [ ROLE_EDITOR ] 
+#        view: [ ROLE_EDITOR ]
 #    homepage: # singleton
 #        view: [ ROLE_EDITOR ]
 #        edit: [ ROLE_EDITOR ]

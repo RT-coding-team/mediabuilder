@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Exporter\Commands;
 
 use App\Exporter\ExporterDefaults;
-use App\Exporter\Models\Language;
 use App\Exporter\Stores\CollectionsStore;
 use App\Exporter\Stores\PackagesStore;
 use App\Exporter\Stores\SinglesStore;
 use App\Exporter\Utilities\Config;
-use App\Exporter\Utilities\ContentExporter;
 use App\Exporter\Utilities\FileLogger;
+use App\Exporter\Utilities\PackageExporter;
 use Bolt\Repository\ContentRepository;
 use Bolt\Repository\RelationRepository;
 use Bolt\Repository\TaxonomyRepository;
@@ -59,9 +58,9 @@ class ExportCommand extends Command
     /**
      * The content exporter
      *
-     * @var ContentExporter
+     * @var PackageExporter
      */
-    private $contentExporter = null;
+    private $packageExporter = null;
 
     /**
      * The file logger for tracking progress
@@ -99,6 +98,10 @@ class ExportCommand extends Command
         parent::__construct();
 
         $this->config = new Config();
+        $siteUrl = $this->config->get('exporter/site_url');
+        if (! empty($siteUrl)) {
+            $siteUrl = rtrim($siteUrl, '/').'/';
+        }
         $publicPath = $this->config->get('exporter/public_path');
         if (! $publicPath) {
             $publicPath = ExporterDefaults::PUBLIC_PATH;
@@ -111,12 +114,14 @@ class ExportCommand extends Command
         $this->collectionsStore = new CollectionsStore(
             $contentRepository,
             $relationRepository,
-            $this->directories['public']
+            $this->directories['public'],
+            $siteUrl
         );
         $this->singlesStore = new SinglesStore(
             $contentRepository,
             $relationRepository,
-            $this->directories['public']
+            $this->directories['public'],
+            $siteUrl
         );
         $this->packagesStore = new PackagesStore($taxonomyRepository);
     }
@@ -144,36 +149,37 @@ class ExportCommand extends Command
             $output,
             Path::join($this->directories['exports'], 'export_progress.json')
         );
-        $this->contentExporter = new ContentExporter(
+        $this->packageExporter = new PackageExporter(
+            $this->directories['public'],
             $this->directories['exports'],
+            $this->config,
             $this->fileLogger
         );
-        $supported = $this->config->get('exporter/supported_languages');
-        if (! $supported) {
-            $supported = ExporterDefaults::SUPPORTED_LANGUAGES;
-        }
         try {
-            $packages = $this->buildPackages($supported);
-            $this->export($output, $packages, $supported);
+            $packages = $this->buildPackages();
+            $this->exportPackages($packages);
+            $this->fileLogger->logFinished('Content Exporter');
 
             return Command::SUCCESS;
         } catch (\Throwable $e) {
-          $this->fileLogger->logError($e->getMessage());
+            $this->fileLogger->logError($e->getMessage());
 
-          return Command::FAILURE;
+            return Command::FAILURE;
         }
     }
 
     /**
      * Build the packages to send to the exporter
      *
-     * @param array $supported The supported languages
-     *
      * @return array The array of packages
      */
-    private function buildPackages(array $supported): array
+    private function buildPackages(): array
     {
         $results = [];
+        $supported = $this->config->get('exporter/supported_languages');
+        if (! $supported) {
+            $supported = ExporterDefaults::SUPPORTED_LANGUAGES;
+        }
         $packages = $this->packagesStore->findAll();
         foreach ($packages as $package) {
             foreach ($supported as $lang) {
@@ -205,59 +211,16 @@ class ExportCommand extends Command
     /**
      * Export the packages
      *
-     * @param OutputInterface $output The output interface
      * @param array $packages The packages to export
-     * @param array $supported The supported languages
      */
-    private function export(OutputInterface $output, array $packages, array $supported): void
+    private function exportPackages(array $packages): void
     {
-        $fileDateSuffix = $this->config->get('exporter/file_date_suffix');
-        if (! $fileDateSuffix) {
-            $fileDateSuffix = ExporterDefaults::FILE_DATE_SUFFIX;
-        }
-        $logo = '';
-        $logoPath = $this->config->get('exporter/logo_public_path');
-        if ($logoPath) {
-            $logo = Path::canonicalize($this->directories['public'].$logoPath);
-            if (! file_exists($logo)) {
-                $logo = '';
-            }
-        }
         foreach ($packages as $package) {
             $this->fileLogger->log('Creating package: '.$package->title);
-            $this->contentExporter->start($package->title, $package->slug, $fileDateSuffix, $logo);
-            foreach ($supported as $lang) {
-                if (! $package->hasContentForLocale($lang['bolt_locale_code'])) {
-                    // We have no content for this locale so move along.
-                    continue;
-                }
-                $language = new Language(
-                    $lang['codes'],
-                    $lang['text'],
-                    (bool) $lang['default']
-                );
-                $interface = $this->config->get('exporter/interface/'.$lang['bolt_locale_code']);
-                if (! $interface) {
-                    $interface = $this->config->get('exporter/interface/en');
-                }
-                $this->contentExporter->startLocale($lang['bolt_locale_code'], $interface);
-                $this->contentExporter->addLanguage($language);
-
-                $collections = $package->getCollectionsByLocale($lang['bolt_locale_code']);
-                foreach ($collections as $collection) {
-                    $this->contentExporter->addCollection($collection);
-                }
-
-                $singles = $package->getSinglesByLocale($lang['bolt_locale_code']);
-                foreach ($singles as $single) {
-                    $this->contentExporter->addSingle($single);
-                }
-
-                $this->contentExporter->finishLocale();
-            }
-            $this->contentExporter->finish();
+            $this->packageExporter->export($package, false);
+            // Create a slim version
+            $this->packageExporter->export($package, true);
             $this->fileLogger->log('Completed package: '.$package->title);
         }
-        $this->fileLogger->logFinished('Content Exporter');
     }
 }
