@@ -2,22 +2,24 @@ version: '3.4'
 
 services:
   db:
+    container_name: mysql
     image: mysql:5.7
     environment:
       - MYSQL_DATABASE=bolt
       - MYSQL_USER=bolt
-      - MYSQL_PASSWORD=PassWord!123!
-      - MYSQL_ROOT_PASSWORD=PassWord!123!
+      - MYSQL_PASSWORD=${MASTERPASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MASTERPASSWORD}
     volumes:
       - db-data:/var/lib/mysql:rw
       # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
       # - ./docker/db/data:/var/lib/mysql:rw
     ports:
       - target: 3306
-        published: 3306
+        published: 33306
         protocol: tcp
 
   php:
+    container_name: php
     build:
       context: ./
       target: php
@@ -36,6 +38,7 @@ services:
       # - ./var:/srv/bolt/var:rw
 
   nginx:
+    container_name: nginxbolt
     build:
       context: ./
       target: nginx
@@ -49,6 +52,7 @@ services:
         protocol: tcp
 
   h2-proxy:
+    container_name: h2-proxy
     build:
       context: ./docker/h2-proxy
     depends_on:
@@ -59,6 +63,7 @@ services:
         protocol: tcp
 
   mailcatcher:
+    container_name: mailcatcher
     image: schickling/mailcatcher
     ports:
       - target: 1080
