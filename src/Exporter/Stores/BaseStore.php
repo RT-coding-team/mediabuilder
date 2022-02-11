@@ -131,7 +131,7 @@ class BaseStore
      *
      * @return mixed The value
      */
-    protected function getTranslatedValue(Content $content, string $fieldName): mixed
+    protected function getTranslatedValue(Content $content, string $fieldName)
     {
         $field = $content->getField($fieldName);
         $field->setLocale($this->currentLocale);
