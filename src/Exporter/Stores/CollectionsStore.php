@@ -48,7 +48,7 @@ class CollectionsStore extends BaseStore
      */
     private function buildCollection(Content $content): ?Collection
     {
-        if (! $content) {
+        if (! $content || (! $this->hasTranslatedField($content, 'title'))) {
             return null;
         }
         $localImagePath = $this->getFileFieldPublicPath($content, 'image');

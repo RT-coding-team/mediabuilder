@@ -131,7 +131,7 @@ class BaseStore
      *
      * @return mixed The value
      */
-    protected function getTranslatedValue(Content $content, string $fieldName)
+    protected function getTranslatedValue(Content $content, string $fieldName): mixed
     {
         $field = $content->getField($fieldName);
         $field->setLocale($this->currentLocale);
@@ -154,7 +154,7 @@ class BaseStore
         $field->setLocale($this->currentLocale);
         $value = $field->getParsedValue();
 
-        return '' !== $value['filename'];
+        return $value && (\array_key_exists('filename', $value)) && ('' !== $value['filename']);
     }
 
     /**
@@ -172,6 +172,6 @@ class BaseStore
         $field->setLocale($this->currentLocale);
         $value = $field->getParsedValue();
 
-        return '' !== $value;
+        return $value && ('' !== $value);
     }
 }
