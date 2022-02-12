@@ -1,14 +1,29 @@
 # MM Content Builder
 
-The MM Content Builder is a tool to build the content used by the [MM Interface](https://github.com/RT-coding-team/mediainterface).  It is built on the [Bolt CMS](https://boltcms.io/).  There is no frontend to this code base, so all users will need a login to use it.
+The MM Content Builder is a tool to build the content used by the [MM Interface](https://github.com/RT-coding-team/mediainterface).  It is built on the [Bolt CMS](https://boltcms.io/).  
+
+## Installation
+
+There is a full [Well / Connectbox Server](https://github.com/RT-coding-team/chathost) available to download with instructions.  However, advanced users may find utility in a solo installation using docker-compose file in this repo with nginx configured for PHP or other [Bolt CMS installation methods](https://docs.boltcms.io/5.0/installation/installation).
 
 ## Configuration
 
+Create an environment file from .env.example and replace fields such as mysql password that provides user credentials.  
+
 In order to set the supported languages for the content builder, you need to edit the following configurations:
 
-- In `config/bolt/exporter.yml`, add all relating languages in the exporter/supported_languages field.
+- In `config/bolt/exporter.yml`, update the site_url to the full URL of the site and add all relating languages in the exporter/supported_languages field.
 - In `config/bolt/contenttypes.yml`, add the two letter language code for each field that has a locales option.
 - In `config/services.yml`, verify the language is in the array parameters/app_locales
+
+## Usage 
+
+The docker installation will create an `admin` user account using the Master Password in the .env file.  You can log in and create additional users.
+
+## Usage Videos
+
+- [Logging In]()
+- [Introduction To Data Types]()
 
 ## Exporter API
 
