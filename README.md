@@ -2,6 +2,8 @@
 
 The MM Content Builder is a tool to build the content used by the [MM Interface](https://github.com/RT-coding-team/mediainterface).  It is built on the [Bolt CMS](https://boltcms.io/).  
 
+Intro Video: https://www.loom.com/share/a5b937084aa442b4bfb1b9a9bd552688
+
 ## Installation
 
 There is a full [Well / Connectbox Server](https://github.com/RT-coding-team/chathost) available to download with instructions.  However, advanced users may find utility in a solo installation using docker-compose file in this repo with nginx configured for PHP or other [Bolt CMS installation methods](https://docs.boltcms.io/5.0/installation/installation).
