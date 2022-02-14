@@ -154,7 +154,7 @@ class BaseStore
         $field->setLocale($this->currentLocale);
         $value = $field->getParsedValue();
 
-        return '' !== $value['filename'];
+        return $value && (\array_key_exists('filename', $value)) && ('' !== $value['filename']);
     }
 
     /**
@@ -172,6 +172,6 @@ class BaseStore
         $field->setLocale($this->currentLocale);
         $value = $field->getParsedValue();
 
-        return '' !== $value;
+        return $value && ('' !== $value);
     }
 }
