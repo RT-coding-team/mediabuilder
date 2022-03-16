@@ -48,7 +48,7 @@ services:
       - ./public:/srv/bolt/public:ro
     ports:
       - target: 80
-        published: ${HTTP_PORT}
+        published: 8080
         protocol: tcp
 
   mailcatcher:
