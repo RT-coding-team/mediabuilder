@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Menus;
 
+use App\Defaults\ExporterDefaults;
 use App\Defaults\PackageManagerDefaults;
 use Bolt\Menu\ExtensionBackendMenuInterface;
 use Knp\Menu\MenuItem;
@@ -11,9 +12,9 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 /**
- * Adds a menu item for the package manager
+ * Adds a menu item for the packages navigation
  */
-class PackageManagerMenu implements ExtensionBackendMenuInterface
+class PackagesMenu implements ExtensionBackendMenuInterface
 {
     /** @var UrlGeneratorInterface */
     private $urlGenerator;
@@ -45,7 +46,10 @@ class PackageManagerMenu implements ExtensionBackendMenuInterface
      */
     public function addItems(MenuItem $menu): void
     {
-        if (! $this->authorizationChecker->isGranted(PackageManagerDefaults::REQUIRED_PERMISSION)) {
+        if (
+            (! $this->authorizationChecker->isGranted(PackageManagerDefaults::REQUIRED_PERMISSION)) &&
+            (! $this->authorizationChecker->isGranted(ExporterDefaults::REQUIRED_PERMISSION))
+        ) {
             return;
         }
         $menu->addChild('Packages', [
@@ -54,12 +58,21 @@ class PackageManagerMenu implements ExtensionBackendMenuInterface
                 'type' => 'separator',
             ],
         ]);
-        // This adds the link
-        $menu->addChild('Manage Packages', [
-            'uri' => $this->urlGenerator->generate('app_package_manager'),
-            'extras' => [
-                'icon' => 'fas fa-boxes',
-            ],
-        ]);
+        if ($this->authorizationChecker->isGranted(ExporterDefaults::REQUIRED_PERMISSION)) {
+            $menu->addChild('Export', [
+                'uri' => $this->urlGenerator->generate('app_exporter'),
+                'extras' => [
+                    'icon' => 'fa-parachute-box',
+                ],
+            ]);
+        }
+        if ($this->authorizationChecker->isGranted(PackageManagerDefaults::REQUIRED_PERMISSION)) {
+            $menu->addChild('Manage', [
+                'uri' => $this->urlGenerator->generate('app_package_manager'),
+                'extras' => [
+                    'icon' => 'fas fa-boxes',
+                ],
+            ]);
+        }
     }
 }
