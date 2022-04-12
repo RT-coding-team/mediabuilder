@@ -48,18 +48,18 @@ class ExporterMenu implements ExtensionBackendMenuInterface
             return;
         }
         // This adds a new heading
-        $menu->addChild('Exporter', [
+        $menu->addChild('Packages', [
             'extras' => [
-                'name' => 'Interface Exporter',
+                'name' => 'Packages',
                 'type' => 'separator',
             ],
         ]);
 
         // This adds the link
-        $menu->addChild('Manage', [
+        $menu->addChild('Export Packages', [
             'uri' => $this->urlGenerator->generate('app_exporter'),
             'extras' => [
-                'icon' => 'fa-file-export',
+                'icon' => 'fa-parachute-box',
             ],
         ]);
     }
