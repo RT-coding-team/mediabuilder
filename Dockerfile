@@ -43,7 +43,6 @@ RUN set -eux; \
 		gd \
 		exif \
 		pdo \
-		iconv \
 		pcntl \
 		mbstring \
 		fileinfo \

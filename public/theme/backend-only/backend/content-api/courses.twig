@@ -1,7 +1,6 @@
 [
 {% for course in courses %}
     {
-        "description": "{{ course.description }}",
         "filepath": "{{ absolute_url(course.filePath) }}",
         "language": "{{ course.language }}",
         "tags": {{ course.prettyTags|raw }},
