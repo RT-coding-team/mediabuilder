@@ -47,7 +47,7 @@ class PackagesMenu implements ExtensionBackendMenuInterface
     public function addItems(MenuItem $menu): void
     {
         if (
-            (! $this->authorizationChecker->isGranted(PackageManagerDefaults::REQUIRED_PERMISSION)) &&
+            ! $this->authorizationChecker->isGranted(PackageManagerDefaults::REQUIRED_PERMISSION) &&
             (! $this->authorizationChecker->isGranted(ExporterDefaults::REQUIRED_PERMISSION))
         ) {
             return;
