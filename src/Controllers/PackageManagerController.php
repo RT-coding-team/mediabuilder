@@ -87,12 +87,13 @@ class PackageManagerController extends TwigAwareController implements BackendZon
         $collections = $this->collectionsStore->findAll();
         $singles = $this->singlesStore->findAll();
         $packages = $this->packagesStore->findAll();
+
         return $this->render(
             'backend/package-manager/index.twig',
             [
-                'collections'   =>  $collections,
-                'packages'      =>  $packages,
-                'singles'       =>  $singles
+                'collections' => $collections,
+                'packages' => $packages,
+                'singles' => $singles,
             ]
         );
     }
