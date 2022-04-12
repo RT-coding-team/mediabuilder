@@ -26,27 +26,27 @@ frontend:
 # Routes for the project-specific functionality
 
 exporter_panel:
-  resource: '../src/Exporter/ExporterController.php'
+  resource: '../src/Controllers/ExporterController.php'
   prefix: '%bolt.backend_url%'
   type: annotation
 
 exporter_api:
   path: /exporter/api/files.json
   defaults:
-    _controller: App\Exporter\ExporterController::apiFiles
+    _controller: App\Controllers\ExporterController::apiFiles
 
 api_courses:
   path: /content-api/courses.json
   defaults:
-    _controller: App\ContentAPI\ContentAPIController::courses
+    _controller: App\Controllers\ContentAPIController::courses
 
 package_manager:
-  resource: '../src/PackageManager/PackageManagerController.php'
+  resource: '../src/Controllers/PackageManagerController.php'
   prefix: '%bolt.backend_url%'
   type: annotation
 
 project:
-  resource: '../src/Controller'
+  resource: '../src/Controllers'
   prefix: /
   type: annotation
 
