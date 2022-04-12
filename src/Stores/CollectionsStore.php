@@ -35,6 +35,7 @@ class CollectionsStore extends BaseStore
                 $collections[] = $collection;
             }
         }
+        usort($collections, fn ($a, $b) => strcmp($a->title, $b->title));
 
         return $collections;
     }

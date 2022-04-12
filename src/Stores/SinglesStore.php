@@ -34,6 +34,7 @@ class SinglesStore extends BaseStore
                 $singles[] = $single;
             }
         }
+        usort($singles, fn ($a, $b) => strcmp($a->title, $b->title));
 
         return $singles;
     }
