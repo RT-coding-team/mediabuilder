@@ -5,11 +5,17 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Defaults\PackageManagerDefaults;
+use App\Stores\CollectionsStore;
+use App\Stores\PackagesStore;
+use App\Stores\SinglesStore;
 use Bolt\Controller\Backend\BackendZoneInterface;
 use Bolt\Controller\TwigAwareController;
+use Bolt\Repository\ContentRepository;
+use Bolt\Repository\RelationRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Webmozart\PathUtil\Path;
 
 /**
  * The controller for the package manager
@@ -23,10 +29,48 @@ class PackageManagerController extends TwigAwareController implements BackendZon
      */
     private $authorizationChecker = null;
 
+    /**
+     * Our collections store
+     *
+     * @var CollectionsStore
+     */
+    private $collectionsStore = null;
+
+    /**
+     * Our packages store
+     *
+     * @var PackagesStore
+     */
+    private $packagesStore = null;
+
+    /**
+     * Our singles store
+     *
+     * @var SinglesStore
+     */
+    private $singlesStore = null;
+
     public function __construct(
-        AuthorizationCheckerInterface $authorizationChecker
+        AuthorizationCheckerInterface $authorizationChecker,
+        ContentRepository $contentRepository,
+        PackagesStore $packagesStore,
+        RelationRepository $relationRepository
     ) {
+        $publicPath = Path::canonicalize(\dirname(__DIR__, 2).'/public/');
         $this->authorizationChecker = $authorizationChecker;
+        $this->collectionsStore = new CollectionsStore(
+            $contentRepository,
+            $relationRepository,
+            $publicPath,
+            ''
+        );
+        $this->packagesStore = $packagesStore;
+        $this->singlesStore = new SinglesStore(
+            $contentRepository,
+            $relationRepository,
+            $publicPath,
+            ''
+        );
     }
 
     /**
@@ -40,6 +84,16 @@ class PackageManagerController extends TwigAwareController implements BackendZon
             return $this->redirectToRoute('bolt_dashboard');
         }
 
-        return $this->render('backend/package-manager/index.twig', []);
+        $collections = $this->collectionsStore->findAll();
+        $singles = $this->singlesStore->findAll();
+        $packages = $this->packagesStore->findAll();
+        return $this->render(
+            'backend/package-manager/index.twig',
+            [
+                'collections'   =>  $collections,
+                'packages'      =>  $packages,
+                'singles'       =>  $singles
+            ]
+        );
     }
 }
