@@ -229,4 +229,14 @@ class Collection
     {
         return \in_array($packageSlug, $this->packages, true);
     }
+
+    /**
+     * Get the list of packages the collection belongs to
+     *
+     * @return array The packages
+     */
+    public function getPackages(): array
+    {
+        return $this->packages;
+    }
 }
