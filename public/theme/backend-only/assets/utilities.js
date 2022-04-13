@@ -29,3 +29,19 @@ function getRequest(url, onLoad, onError) {
   request.onerror = onError;
   request.send();
 }
+/**
+ * Make an http post request
+ *
+ * @param  {string}     url     The url to call
+ * @param  {object}     payload The payload to send
+ * @param  {function}   onLoad  Callback for onload
+ * @param  {function}   onError Callback for onerror
+ * @return {void}
+ */
+function postRequest(url, payload, onLoad, onError) {
+  var request = new XMLHttpRequest();
+  request.open('POST', url, true);
+  request.onload = onLoad;
+  request.onerror = onError;
+  request.send(JSON.stringify(payload));
+}
