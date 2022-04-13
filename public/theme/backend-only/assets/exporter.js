@@ -104,19 +104,6 @@ function prettyTimestamp(timestamp) {
   return month + ' ' + day + ', ' + year + ' @ ' + hour + ':' + min + ':' + sec + ' ' + meridian;
 }
 /**
- * On Ready function
- *
- * @param  {Function} callback The call back to call when ready.
- * @return {void}
- */
-function ready(callback) {
-  if (document.readyState != 'loading'){
-    callback();
-  } else {
-    document.addEventListener('DOMContentLoaded', callback);
-  }
-}
-/**
  * Set whether we are processing.  Handles the buttons correctly.
  *
  * @param {Boolean} isProcessing yes|no
