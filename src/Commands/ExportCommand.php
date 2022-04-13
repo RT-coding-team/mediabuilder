@@ -121,6 +121,7 @@ class ExportCommand extends Command
             $contentRepository,
             $entityManager,
             $relationRepository,
+            $taxonomyRepository,
             $this->directories['public'],
             $siteUrl
         );
@@ -129,6 +130,7 @@ class ExportCommand extends Command
             $contentRepository,
             $entityManager,
             $relationRepository,
+            $taxonomyRepository,
             $this->directories['public'],
             $siteUrl
         );

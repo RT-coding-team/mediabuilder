@@ -9,6 +9,7 @@ use Bolt\Configuration\Content\ContentType;
 use Bolt\Entity\Content;
 use Bolt\Repository\ContentRepository;
 use Bolt\Repository\RelationRepository;
+use Bolt\Repository\TaxonomyRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Webmozart\PathUtil\Path;
 
@@ -60,6 +61,13 @@ class BaseStore
     protected $relationRepository;
 
     /**
+     * The repository for retrieving taxonomy
+     *
+     * @var TaxonomyRepository
+     */
+    protected $taxonomyRepository;
+
+    /**
      * The url for the site.
      *
      * @var string
@@ -73,6 +81,7 @@ class BaseStore
      * @param ContentRepository $contentRepository Bolt's Content Repository
      * @param EntityManagerInterface $entityManager Doctrine's entity manager
      * @param RelationRepository $relationRepository Bolt's Related Repository
+     * @param TaxonomyRepository $taxonomyRepository Bolt's Taxonomy Repository
      * @param string $publicDirectory The public directory
      * @param string $siteUrl The url for the site
      */
@@ -81,6 +90,7 @@ class BaseStore
         ContentRepository $contentRepository,
         EntityManagerInterface $entityManager,
         RelationRepository $relationRepository,
+        TaxonomyRepository $taxonomyRepository,
         string $publicDirectory,
         string $siteUrl
     ) {
@@ -91,6 +101,7 @@ class BaseStore
         $this->contentRepository = $contentRepository;
         $this->entityManager = $entityManager;
         $this->relationRepository = $relationRepository;
+        $this->taxonomyRepository = $taxonomyRepository;
         $this->publicDir = $publicDirectory;
         $this->siteUrl = $siteUrl;
     }

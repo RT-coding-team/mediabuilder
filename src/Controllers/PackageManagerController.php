@@ -13,6 +13,7 @@ use Bolt\Controller\Backend\BackendZoneInterface;
 use Bolt\Controller\TwigAwareController;
 use Bolt\Repository\ContentRepository;
 use Bolt\Repository\RelationRepository;
+use Bolt\Repository\TaxonomyRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -58,7 +59,8 @@ class PackageManagerController extends TwigAwareController implements BackendZon
         ContentRepository $contentRepository,
         EntityManagerInterface $entityManager,
         PackagesStore $packagesStore,
-        RelationRepository $relationRepository
+        RelationRepository $relationRepository,
+        TaxonomyRepository $taxonomyRepository
     ) {
         $publicPath = Path::canonicalize(\dirname(__DIR__, 2).'/public/');
         $this->authorizationChecker = $authorizationChecker;
@@ -67,6 +69,7 @@ class PackageManagerController extends TwigAwareController implements BackendZon
             $contentRepository,
             $entityManager,
             $relationRepository,
+            $taxonomyRepository,
             $publicPath,
             ''
         );
@@ -76,6 +79,7 @@ class PackageManagerController extends TwigAwareController implements BackendZon
             $contentRepository,
             $entityManager,
             $relationRepository,
+            $taxonomyRepository,
             $publicPath,
             ''
         );

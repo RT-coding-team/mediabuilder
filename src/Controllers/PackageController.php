@@ -12,6 +12,7 @@ use Bolt\Configuration\Config as BoltConfig;
 use Bolt\Controller\TwigAwareController;
 use Bolt\Repository\ContentRepository;
 use Bolt\Repository\RelationRepository;
+use Bolt\Repository\TaxonomyRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -58,7 +59,8 @@ class PackageController extends TwigAwareController
         ContentRepository $contentRepository,
         EntityManagerInterface $entityManager,
         PackagesStore $packagesStore,
-        RelationRepository $relationRepository
+        RelationRepository $relationRepository,
+        TaxonomyRepository $taxonomyRepository
     ) {
         $publicPath = Path::canonicalize(\dirname(__DIR__, 2).'/public/');
         $this->authorizationChecker = $authorizationChecker;
@@ -67,6 +69,7 @@ class PackageController extends TwigAwareController
             $contentRepository,
             $entityManager,
             $relationRepository,
+            $taxonomyRepository,
             $publicPath,
             ''
         );
@@ -76,6 +79,7 @@ class PackageController extends TwigAwareController
             $contentRepository,
             $entityManager,
             $relationRepository,
+            $taxonomyRepository,
             $publicPath,
             ''
         );
@@ -152,6 +156,15 @@ class PackageController extends TwigAwareController
                 $state = 'removed';
             } else {
                 // add the package
+                $success = $this->collectionsStore->addPackage($content->related->slug, $content->slug);
+                if (! $success) {
+                    $response = new Response(json_encode([
+                        'errors' => 'Unable to add the provided package.',
+                    ]), 500);
+                    $response->headers->set('Content-Type', 'application/json');
+
+                    return $response;
+                }
                 $state = 'added';
             }
         }
