@@ -15,6 +15,7 @@ use Bolt\Configuration\Config as BoltConfig;
 use Bolt\Repository\ContentRepository;
 use Bolt\Repository\RelationRepository;
 use Bolt\Repository\TaxonomyRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -95,6 +96,7 @@ class ExportCommand extends Command
     public function __construct(
         BoltConfig $boltConfig,
         ContentRepository $contentRepository,
+        EntityManagerInterface $entityManager,
         RelationRepository $relationRepository,
         TaxonomyRepository $taxonomyRepository
     ) {
@@ -117,6 +119,7 @@ class ExportCommand extends Command
         $this->collectionsStore = new CollectionsStore(
             $boltConfig,
             $contentRepository,
+            $entityManager,
             $relationRepository,
             $this->directories['public'],
             $siteUrl
@@ -124,6 +127,7 @@ class ExportCommand extends Command
         $this->singlesStore = new SinglesStore(
             $boltConfig,
             $contentRepository,
+            $entityManager,
             $relationRepository,
             $this->directories['public'],
             $siteUrl

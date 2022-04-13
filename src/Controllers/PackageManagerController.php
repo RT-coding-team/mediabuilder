@@ -13,6 +13,7 @@ use Bolt\Controller\Backend\BackendZoneInterface;
 use Bolt\Controller\TwigAwareController;
 use Bolt\Repository\ContentRepository;
 use Bolt\Repository\RelationRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -55,6 +56,7 @@ class PackageManagerController extends TwigAwareController implements BackendZon
         AuthorizationCheckerInterface $authorizationChecker,
         BoltConfig $boltConfig,
         ContentRepository $contentRepository,
+        EntityManagerInterface $entityManager,
         PackagesStore $packagesStore,
         RelationRepository $relationRepository
     ) {
@@ -63,6 +65,7 @@ class PackageManagerController extends TwigAwareController implements BackendZon
         $this->collectionsStore = new CollectionsStore(
             $boltConfig,
             $contentRepository,
+            $entityManager,
             $relationRepository,
             $publicPath,
             ''
@@ -71,6 +74,7 @@ class PackageManagerController extends TwigAwareController implements BackendZon
         $this->singlesStore = new SinglesStore(
             $boltConfig,
             $contentRepository,
+            $entityManager,
             $relationRepository,
             $publicPath,
             ''

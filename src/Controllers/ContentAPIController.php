@@ -9,6 +9,7 @@ use Bolt\Configuration\Config as BoltConfig;
 use Bolt\Controller\TwigAwareController;
 use Bolt\Repository\ContentRepository;
 use Bolt\Repository\RelationRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Webmozart\PathUtil\Path;
 
@@ -35,12 +36,14 @@ class ContentAPIController extends TwigAwareController
     public function __construct(
         BoltConfig $boltConfig,
         ContentRepository $contentRepository,
+        EntityManagerInterface $entityManager,
         RelationRepository $relationRepository
     ) {
         $publicPath = Path::canonicalize(\dirname(__DIR__, 2).'/public/');
         $this->coursesStore = new CoursesStore(
             $boltConfig,
             $contentRepository,
+            $entityManager,
             $relationRepository,
             $publicPath,
             ''

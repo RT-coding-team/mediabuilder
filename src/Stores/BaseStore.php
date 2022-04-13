@@ -9,6 +9,7 @@ use Bolt\Configuration\Content\ContentType;
 use Bolt\Entity\Content;
 use Bolt\Repository\ContentRepository;
 use Bolt\Repository\RelationRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Webmozart\PathUtil\Path;
 
 /**
@@ -38,6 +39,13 @@ class BaseStore
     protected $currentLocale = 'en';
 
     /**
+     * Doctrine's entity manager
+     *
+     * @var EntityManagerInterface
+     */
+    protected $entityManager = null;
+
+    /**
      * The directory for public files
      *
      * @var string
@@ -63,6 +71,7 @@ class BaseStore
      *
      * @param Config $config Bolt's configuration class
      * @param ContentRepository $contentRepository Bolt's Content Repository
+     * @param EntityManagerInterface $entityManager Doctrine's entity manager
      * @param RelationRepository $relationRepository Bolt's Related Repository
      * @param string $publicDirectory The public directory
      * @param string $siteUrl The url for the site
@@ -70,6 +79,7 @@ class BaseStore
     public function __construct(
         Config $config,
         ContentRepository $contentRepository,
+        EntityManagerInterface $entityManager,
         RelationRepository $relationRepository,
         string $publicDirectory,
         string $siteUrl
@@ -79,6 +89,7 @@ class BaseStore
         }
         $this->boltConfig = $config;
         $this->contentRepository = $contentRepository;
+        $this->entityManager = $entityManager;
         $this->relationRepository = $relationRepository;
         $this->publicDir = $publicDirectory;
         $this->siteUrl = $siteUrl;
