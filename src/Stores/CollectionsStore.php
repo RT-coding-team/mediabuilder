@@ -53,9 +53,44 @@ class CollectionsStore extends BaseStore
         if (! $contentType) {
             return null;
         }
-        $data = $this->contentRepository->findOneBySlug($slug, $contentType);
+        $content = $this->contentRepository->findOneBySlug($slug, $contentType);
 
-        return $this->buildCollection($data);
+        return $this->buildCollection($content);
+    }
+
+    /**
+     * Remove the package from the the given collection
+     * @param string $slug The slug of the collection you want to remove the package from
+     * @param string $packageSlug The slug of the package to remove
+     *
+     * @return bool Was it successful?
+     */
+    public function removePackage(string $slug, string $packageSlug): bool
+    {
+        $contentType = $this->getContentType('collection');
+        if (! $contentType) {
+            return false;
+        }
+        $content = $this->contentRepository->findOneBySlug($slug, $contentType);
+        if (! $content) {
+            return false;
+        }
+        $packageTaxonomy = null;
+        $packages = $content->getTaxonomies('packages');
+        foreach ($packages as $package) {
+            if ($package->getSlug() === $packageSlug) {
+                $packageTaxonomy = $package;
+                break;
+            }
+        }
+        if (! $packageTaxonomy) {
+            return false;
+        }
+        $content->removeTaxonomy($packageTaxonomy);
+        $this->entityManager->persist($content);
+        $this->entityManager->flush();
+
+        return true;
     }
 
     /**

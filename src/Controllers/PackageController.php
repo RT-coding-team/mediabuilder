@@ -12,6 +12,7 @@ use Bolt\Configuration\Config as BoltConfig;
 use Bolt\Controller\TwigAwareController;
 use Bolt\Repository\ContentRepository;
 use Bolt\Repository\RelationRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -55,6 +56,7 @@ class PackageController extends TwigAwareController
         AuthorizationCheckerInterface $authorizationChecker,
         BoltConfig $boltConfig,
         ContentRepository $contentRepository,
+        EntityManagerInterface $entityManager,
         PackagesStore $packagesStore,
         RelationRepository $relationRepository
     ) {
@@ -63,6 +65,7 @@ class PackageController extends TwigAwareController
         $this->collectionsStore = new CollectionsStore(
             $boltConfig,
             $contentRepository,
+            $entityManager,
             $relationRepository,
             $publicPath,
             ''
@@ -71,6 +74,7 @@ class PackageController extends TwigAwareController
         $this->singlesStore = new SinglesStore(
             $boltConfig,
             $contentRepository,
+            $entityManager,
             $relationRepository,
             $publicPath,
             ''
@@ -123,6 +127,7 @@ class PackageController extends TwigAwareController
 
             return $response;
         }
+        $state = '';
         if ('collection' === $content->related->content_type) {
             $collection = $this->collectionsStore->findBySlug($content->related->slug);
             if (! $collection) {
@@ -133,11 +138,25 @@ class PackageController extends TwigAwareController
 
                 return $response;
             }
-            print_r($collection);
-            exit;
+            if (\in_array($content->slug, $collection->getPackages())) {
+                // remove the package
+                $success = $this->collectionsStore->removePackage($content->related->slug, $content->slug);
+                if (! $success) {
+                    $response = new Response(json_encode([
+                        'errors' => 'Unable to remove the provided package.',
+                    ]), 500);
+                    $response->headers->set('Content-Type', 'application/json');
+
+                    return $response;
+                }
+                $state = 'removed';
+            } else {
+                // add the package
+                $state = 'added';
+            }
         }
         $response = new Response(json_encode([
-            'state' => 'added',
+            'state' => $state,
         ]));
         $response->headers->set('Content-Type', 'application/json');
 

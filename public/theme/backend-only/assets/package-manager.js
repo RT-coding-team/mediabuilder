@@ -22,7 +22,7 @@ ready(function() {
   toggle.addEventListener('click', function(event) {
     event.preventDefault();
     var payload = {
-      slug: 'silly',
+      slug: 'funny',
       related: {
         content_type: 'collection',
         slug: 'silly-animal-videos',
