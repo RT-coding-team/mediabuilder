@@ -13,7 +13,7 @@
         <div class="card-body">
             <div class="form-group">
                 <p>
-                    <select class="full-width form-control" name="package">
+                    <select class="full-width form-control" name="package" id="package-selector">
                         {% for package in packages %}
                             <option value="{{ package.slug }}">{{ package.title }}</option>
                         {% endfor %}
@@ -65,5 +65,6 @@
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
+    <script src="{{ asset('assets/utilities.js') }}"></script>
     <script src="{{ asset('assets/package-manager.js') }}"></script>
 {% endblock %}
