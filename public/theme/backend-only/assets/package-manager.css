@@ -2,6 +2,9 @@
     display: flex;
     flex-direction: row;
 }
-.flex-col-50 {
-    width: 50%;
+.flex-col-half {
+    width: 48%;
+}
+.flex-col-half-first {
+    margin-right: 4%;
 }

@@ -6,32 +6,60 @@
     <link rel="stylesheet" href="{{ asset('assets/package-manager.css') }}" />
 {% endblock %}
 {% block main %}
-    <div id="resources-wrapper" class="flex-row">
-        <div id="resources-collections" class="flex-col-50">
-            <h3><i class="fas fa-layer-group"></i> Collections</h3>
-            <table class="table table-sm table-hover">
-                <tbody>
-                    {% for collection in collections %}
-                        <tr>
-                            <td><input type="checkbox" class="include-checkbox" data-slug="{{ collection.slug }}" data-packages="{{ collection.getPackages()|join('|') }}"></td>
-                            <td>{{ collection.title }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <div id="package-selector-wrapper" class="card mb-3">
+        <div class="card-header">
+            <i class="fas fa-box"></i> Package
         </div>
-        <div id="resources-singles" class="flex-col-50">
-            <h3><i class="fas fa-square"></i> Singles</h3>
-            <table class="table table-sm table-hover">
-                <tbody>
-                    {% for single in singles %}
-                        <tr>
-                            <td><input type="checkbox" class="include-checkbox" data-slug="{{ single.slug }}" data-packages="{{ single.getPackages()|join('|') }}"></td>
-                            <td>{{ single.title }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="card-body">
+            <div class="form-group">
+                <p>
+                    <select class="full-width form-control" name="package">
+                        {% for package in packages %}
+                            <option value="{{ package.slug }}">{{ package.title }}</option>
+                        {% endfor %}
+                    </select>
+                </p>
+            </div>
+        </div>
+    </div>
+    <div id="resources-wrapper" class="flex-row">
+        <div id="resources-collections" class="flex-col-half flex-col-half-first">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-layer-group"></i> Collections
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <tbody>
+                            {% for collection in collections %}
+                                <tr>
+                                    <td><input type="checkbox" class="include-checkbox" data-slug="{{ collection.slug }}" data-packages="{{ collection.getPackages()|join('|') }}"></td>
+                                    <td>{{ collection.title }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div id="resources-singles" class="flex-col-half">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-square"></i> Singles
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <tbody>
+                            {% for single in singles %}
+                                <tr>
+                                    <td><input type="checkbox" class="include-checkbox" data-slug="{{ single.slug }}" data-packages="{{ single.getPackages()|join('|') }}"></td>
+                                    <td>{{ single.title }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 {% endblock %}
