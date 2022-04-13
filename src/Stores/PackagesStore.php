@@ -47,6 +47,7 @@ class PackagesStore
                 $data->getName()
             );
         }
+        usort($packages, fn ($a, $b) => strcmp($a->title, $b->title));
 
         return $packages;
     }
