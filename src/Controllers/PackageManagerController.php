@@ -8,6 +8,7 @@ use App\Defaults\PackageManagerDefaults;
 use App\Stores\CollectionsStore;
 use App\Stores\PackagesStore;
 use App\Stores\SinglesStore;
+use Bolt\Configuration\Config as BoltConfig;
 use Bolt\Controller\Backend\BackendZoneInterface;
 use Bolt\Controller\TwigAwareController;
 use Bolt\Repository\ContentRepository;
@@ -52,6 +53,7 @@ class PackageManagerController extends TwigAwareController implements BackendZon
 
     public function __construct(
         AuthorizationCheckerInterface $authorizationChecker,
+        BoltConfig $boltConfig,
         ContentRepository $contentRepository,
         PackagesStore $packagesStore,
         RelationRepository $relationRepository
@@ -59,6 +61,7 @@ class PackageManagerController extends TwigAwareController implements BackendZon
         $publicPath = Path::canonicalize(\dirname(__DIR__, 2).'/public/');
         $this->authorizationChecker = $authorizationChecker;
         $this->collectionsStore = new CollectionsStore(
+            $boltConfig,
             $contentRepository,
             $relationRepository,
             $publicPath,
@@ -66,6 +69,7 @@ class PackageManagerController extends TwigAwareController implements BackendZon
         );
         $this->packagesStore = $packagesStore;
         $this->singlesStore = new SinglesStore(
+            $boltConfig,
             $contentRepository,
             $relationRepository,
             $publicPath,

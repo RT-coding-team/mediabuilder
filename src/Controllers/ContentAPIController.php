@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Stores\CoursesStore;
+use Bolt\Configuration\Config as BoltConfig;
 use Bolt\Controller\TwigAwareController;
 use Bolt\Repository\ContentRepository;
 use Bolt\Repository\RelationRepository;
@@ -32,11 +33,13 @@ class ContentAPIController extends TwigAwareController
      * Build the class
      */
     public function __construct(
+        BoltConfig $boltConfig,
         ContentRepository $contentRepository,
         RelationRepository $relationRepository
     ) {
         $publicPath = Path::canonicalize(\dirname(__DIR__, 2).'/public/');
         $this->coursesStore = new CoursesStore(
+            $boltConfig,
             $contentRepository,
             $relationRepository,
             $publicPath,

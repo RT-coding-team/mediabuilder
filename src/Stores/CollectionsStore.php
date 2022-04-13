@@ -41,13 +41,31 @@ class CollectionsStore extends BaseStore
     }
 
     /**
+     * Find the collection based on the given slug
+     *
+     * @param string $slug The slug of the collection
+     *
+     * @return ?Collection null|The requested collection
+     */
+    public function findBySlug(string $slug): ?Collection
+    {
+        $contentType = $this->getContentType('collection');
+        if (! $contentType) {
+            return null;
+        }
+        $data = $this->contentRepository->findOneBySlug($slug, $contentType);
+
+        return $this->buildCollection($data);
+    }
+
+    /**
      * Build a collection
      *
      * @param Content $content The content
      *
      * @return Collection The new collection or null
      */
-    private function buildCollection(Content $content): ?Collection
+    private function buildCollection(?Content $content): ?Collection
     {
         if (! $content || (! $this->hasTranslatedField($content, 'title'))) {
             return null;

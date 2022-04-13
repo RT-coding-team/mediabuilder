@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Stores;
 
+use Bolt\Configuration\Config;
+use Bolt\Configuration\Content\ContentType;
 use Bolt\Entity\Content;
 use Bolt\Repository\ContentRepository;
 use Bolt\Repository\RelationRepository;
@@ -14,6 +16,13 @@ use Webmozart\PathUtil\Path;
  */
 class BaseStore
 {
+    /**
+     * Bolt's configuration class
+     *
+     * @var Config
+     */
+    protected $boltConfig = null;
+
     /**
      * The repository for retrieving content
      *
@@ -52,12 +61,14 @@ class BaseStore
     /**
      * Build the store
      *
+     * @param Config $config Bolt's configuration class
      * @param ContentRepository $contentRepository Bolt's Content Repository
      * @param RelationRepository $relationRepository Bolt's Related Repository
      * @param string $publicDirectory The public directory
      * @param string $siteUrl The url for the site
      */
     public function __construct(
+        Config $config,
         ContentRepository $contentRepository,
         RelationRepository $relationRepository,
         string $publicDirectory,
@@ -66,10 +77,23 @@ class BaseStore
         if (! file_exists($publicDirectory)) {
             throw new \InvalidArgumentException('The public directory does not exist!');
         }
+        $this->boltConfig = $config;
         $this->contentRepository = $contentRepository;
         $this->relationRepository = $relationRepository;
         $this->publicDir = $publicDirectory;
         $this->siteUrl = $siteUrl;
+    }
+
+    /**
+     * Get the content type for the store
+     *
+     * @param string $slug The slug
+     *
+     * @return ?ContentType The content type
+     */
+    protected function getContentType(string $slug): ?ContentType
+    {
+        return ContentType::factory($slug, $this->boltConfig->get('contenttypes'));
     }
 
     /**

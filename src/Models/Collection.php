@@ -74,7 +74,7 @@ class Collection
 
     /**
      * We append collection- to the slug to make sure it is unique from singles, but this is not
-     * stored in the database this way.  So this is the database slug.
+     * stored in the database this way. So this is the database slug.
      *
      * @var string
      */

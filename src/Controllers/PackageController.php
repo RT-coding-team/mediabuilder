@@ -8,6 +8,7 @@ use App\Defaults\PackageManagerDefaults;
 use App\Stores\CollectionsStore;
 use App\Stores\PackagesStore;
 use App\Stores\SinglesStore;
+use Bolt\Configuration\Config as BoltConfig;
 use Bolt\Controller\TwigAwareController;
 use Bolt\Repository\ContentRepository;
 use Bolt\Repository\RelationRepository;
@@ -52,6 +53,7 @@ class PackageController extends TwigAwareController
 
     public function __construct(
         AuthorizationCheckerInterface $authorizationChecker,
+        BoltConfig $boltConfig,
         ContentRepository $contentRepository,
         PackagesStore $packagesStore,
         RelationRepository $relationRepository
@@ -59,6 +61,7 @@ class PackageController extends TwigAwareController
         $publicPath = Path::canonicalize(\dirname(__DIR__, 2).'/public/');
         $this->authorizationChecker = $authorizationChecker;
         $this->collectionsStore = new CollectionsStore(
+            $boltConfig,
             $contentRepository,
             $relationRepository,
             $publicPath,
@@ -66,6 +69,7 @@ class PackageController extends TwigAwareController
         );
         $this->packagesStore = $packagesStore;
         $this->singlesStore = new SinglesStore(
+            $boltConfig,
             $contentRepository,
             $relationRepository,
             $publicPath,
@@ -111,7 +115,6 @@ class PackageController extends TwigAwareController
         if (! isset($content->related->slug) || empty($content->related->slug)) {
             $errors[] = 'Missing the related slug.';
         }
-
         if (! empty($errors)) {
             $response = new Response(json_encode([
                 'errors' => $errors,
@@ -119,6 +122,19 @@ class PackageController extends TwigAwareController
             $response->headers->set('Content-Type', 'application/json');
 
             return $response;
+        }
+        if ('collection' === $content->related->content_type) {
+            $collection = $this->collectionsStore->findBySlug($content->related->slug);
+            if (! $collection) {
+                $response = new Response(json_encode([
+                    'errors' => 'You must provide a valid collection.',
+                ]), 400);
+                $response->headers->set('Content-Type', 'application/json');
+
+                return $response;
+            }
+            print_r($collection);
+            exit;
         }
         $response = new Response(json_encode([
             'state' => 'added',

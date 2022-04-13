@@ -11,6 +11,7 @@ use App\Stores\SinglesStore;
 use App\Utilities\Config;
 use App\Utilities\FileLogger;
 use App\Utilities\PackageExporter;
+use Bolt\Configuration\Config as BoltConfig;
 use Bolt\Repository\ContentRepository;
 use Bolt\Repository\RelationRepository;
 use Bolt\Repository\TaxonomyRepository;
@@ -86,11 +87,13 @@ class ExportCommand extends Command
     /**
      * Build the class
      *
+     * @param BoltConfig $boltConfig Bolt's configuration class
      * @param ContentRepository $contentRepository The content repository
      * @param RelationRepository $relationRepository The relation repository
      * @param TaxonomyRepository $taxonomyRepository The taxonomy repository
      */
     public function __construct(
+        BoltConfig $boltConfig,
         ContentRepository $contentRepository,
         RelationRepository $relationRepository,
         TaxonomyRepository $taxonomyRepository
@@ -112,12 +115,14 @@ class ExportCommand extends Command
             mkdir($this->directories['exports'], 0777, true);
         }
         $this->collectionsStore = new CollectionsStore(
+            $boltConfig,
             $contentRepository,
             $relationRepository,
             $this->directories['public'],
             $siteUrl
         );
         $this->singlesStore = new SinglesStore(
+            $boltConfig,
             $contentRepository,
             $relationRepository,
             $this->directories['public'],

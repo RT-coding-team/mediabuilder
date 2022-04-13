@@ -18,4 +18,23 @@ ready(function() {
   selector.addEventListener('change', function(event) {
     changePackage(event.target.value);
   });
+  var toggle = document.getElementById('toggle-package');
+  toggle.addEventListener('click', function(event) {
+    event.preventDefault();
+    var payload = {
+      slug: 'silly',
+      related: {
+        content_type: 'collection',
+        slug: 'silly-animal-videos',
+      },
+    };
+    var url = toggle.getAttribute('href');
+    var onLoad = function() {
+      console.log('success');
+    };
+    var onError = function() {
+      console.log('error');
+    };
+    postRequest(url, payload, onLoad, onError);
+  });
 });

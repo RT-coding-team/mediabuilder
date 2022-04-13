@@ -19,6 +19,7 @@
                         {% endfor %}
                     </select>
                 </p>
+                <p><a href="{{ path('app_packages_toggle', {'slug':  'silly'}) }}" id="toggle-package">TRIGGER</a></p>
             </div>
         </div>
     </div>
@@ -33,7 +34,7 @@
                         <tbody>
                             {% for collection in collections %}
                                 <tr>
-                                    <td><input type="checkbox" class="include-checkbox" data-slug="{{ collection.slug }}" data-packages="{{ collection.getPackages()|join('|') }}"></td>
+                                    <td><input type="checkbox" class="include-checkbox" data-slug="{{ collection.storedSlug }}" data-packages="{{ collection.getPackages()|join('|') }}"></td>
                                     <td>{{ collection.title }}</td>
                                 </tr>
                             {% endfor %}
