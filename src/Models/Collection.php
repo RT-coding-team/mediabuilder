@@ -73,6 +73,14 @@ class Collection
     public $slug = '';
 
     /**
+     * We append collection- to the slug to make sure it is unique from singles, but this is not
+     * stored in the database this way.  So this is the database slug.
+     *
+     * @var string
+     */
+    public $storedSlug = '';
+
+    /**
      * An array of tags for the collection (needs to stay public to json serialize correctly)
      *
      * @var array
@@ -117,6 +125,7 @@ class Collection
             throw new \InvalidArgumentException('The collection image does not exist!');
         }
         $this->slug = 'collection-'.$slug;
+        $this->storedSlug = $slug;
         $this->title = $title;
         $this->desc = $desc;
         $this->imageUrl = $imageUrl;
