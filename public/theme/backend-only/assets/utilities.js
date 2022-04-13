@@ -14,3 +14,10 @@ function ready(callback) {
     document.addEventListener('DOMContentLoaded', callback);
   }
 }
+function getRequest(url, onLoad, onError) {
+  var request = new XMLHttpRequest();
+  request.open('GET', url, true);
+  request.onload = onLoad;
+  request.onerror = onError;
+  request.send();
+}

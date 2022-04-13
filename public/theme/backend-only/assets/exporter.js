@@ -134,10 +134,7 @@ function setIsProcessing(isProcessing) {
  * @return {void}
  */
 function statusUpdate() {
-  var request = new XMLHttpRequest();
-  request.open('GET', '/files/exports/export_progress.json', true);
-
-  request.onload = function() {
+  var onLoad = function() {
     if (this.status >= 200 && this.status < 400) {
       var data = JSON.parse(this.response);
       // Sorting wont work because time can be a microsecond
@@ -161,13 +158,11 @@ function statusUpdate() {
     } else {
     }
   }
-
-  request.onerror = function() {
+  var onError = function() {
     document.getElementById('message-holder').innerHTML = '<div class="message message-progress"><h3>Export Progress</h3><p>Server failed to respond. Trying again.</p></div>';
     statusUpdate();
   };
-
-  request.send();
+  getRequest('/files/exports/export_progress.json', onLoad, onError);
 }
 /**
  * Run our code
@@ -204,10 +199,7 @@ ready(function() {
     }
     if (confirm('This may take a while to build. You can close the window and come back later. Do you want to continue?')) {
       setIsProcessing(true);
-      var request = new XMLHttpRequest();
-      request.open('GET', exportLink.getAttribute('href'), true);
-
-      request.onload = function() {
+      var onLoad = function() {
         if (this.status >= 200 && this.status < 400) {
           notify('The export process has started!', true);
           setTimeout(function() {
@@ -219,15 +211,14 @@ ready(function() {
           exportLink.classList.remove('btn-disabled');
           exportIcon.setAttribute('class', 'fas fa-fw fa-wrench');
         }
-      }
-      request.onerror = function() {
+      };
+      var onError = function() {
         notify('There was a problem with the export process!', false);
         isProcessing = false;
         exportLink.classList.remove('btn-disabled');
         exportIcon.setAttribute('class', 'fas fa-fw fa-wrench');
       };
-
-      request.send();
+      getRequest(exportLink.getAttribute('href'), onLoad, onError);
     }
     return false;
   });
