@@ -40,14 +40,9 @@ api_courses:
   defaults:
     _controller: App\Controllers\ContentAPIController::courses
 
-package_manager:
-  resource: '../src/Controllers/PackageManagerController.php'
-  prefix: '%bolt.backend_url%'
-  type: annotation
-
 project:
   resource: '../src/Controllers'
-  prefix: /
+  prefix: '%bolt.backend_url%'
   type: annotation
 
 # ------------------------------------------------------------------------------
