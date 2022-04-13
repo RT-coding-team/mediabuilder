@@ -14,6 +14,14 @@ function ready(callback) {
     document.addEventListener('DOMContentLoaded', callback);
   }
 }
+/**
+ * Make an http get request
+ *
+ * @param  {string}     url     The url to call
+ * @param  {function}   onLoad  Callback for onload
+ * @param  {function}   onError Callback for onerror
+ * @return {void}
+ */
 function getRequest(url, onLoad, onError) {
   var request = new XMLHttpRequest();
   request.open('GET', url, true);
