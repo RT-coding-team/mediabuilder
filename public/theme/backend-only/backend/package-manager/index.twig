@@ -9,6 +9,9 @@
     <div id="package-selector-wrapper" class="card mb-3">
         <div class="card-header">
             <i class="fas fa-box"></i> Package
+            <div class="float-right">
+                <a href="" id="add-package-button" class="no-decoration text-primary"><i class="fas fa-plus-square"></i> Add</a>
+            </div>
         </div>
         <div class="card-body">
             <div class="form-group">
@@ -22,8 +25,8 @@
             </div>
         </div>
     </div>
-    <div id="resources-wrapper" class="flex-row">
-        <div id="resources-collections" class="flex-col-half flex-col-half-first">
+    <div id="resources-wrapper" class="row">
+        <div id="resources-collections" class="col-sm">
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-layer-group"></i> Collections
@@ -42,7 +45,7 @@
                 </div>
             </div>
         </div>
-        <div id="resources-singles" class="flex-col-half">
+        <div id="resources-singles" class="col-sm">
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-square"></i> Singles

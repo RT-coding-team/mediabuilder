@@ -1,10 +1,3 @@
-.flex-row {
-    display: flex;
-    flex-direction: row;
-}
-.flex-col-half {
-    width: 48%;
-}
-.flex-col-half-first {
-    margin-right: 4%;
+a.no-decoration, a.no-decoration:hover {
+    text-decoration: none !important;
 }
