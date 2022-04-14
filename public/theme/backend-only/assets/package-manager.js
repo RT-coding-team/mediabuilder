@@ -22,10 +22,10 @@ ready(function() {
   toggle.addEventListener('click', function(event) {
     event.preventDefault();
     var payload = {
-      slug: 'funny',
+      slug: 'comedy',
       related: {
-        content_type: 'collection',
-        slug: 'silly-animal-videos',
+        content_type: 'single',
+        slug: 'cowabunga',
       },
     };
     var url = toggle.getAttribute('href');

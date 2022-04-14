@@ -14,6 +14,19 @@ use Bolt\Enum\Statuses;
 class SinglesStore extends BaseStore
 {
     /**
+     * Add a package to the single
+     *
+     * @param string $slug The slug of the single you want to add the package from
+     * @param string $packageSlug The slug of the package to add
+     *
+     * @return bool Was it added?
+     */
+    public function addPackage(string $slug, string $packageSlug): bool
+    {
+        return $this->addPackageTaxonomy('single', $slug, $packageSlug);
+    }
+
+    /**
      * Find all singles
      *
      * @param string $locale The locale to get content for (default: en)
@@ -37,6 +50,37 @@ class SinglesStore extends BaseStore
         usort($singles, fn ($a, $b) => strcmp($a->title, $b->title));
 
         return $singles;
+    }
+
+    /**
+     * Find the single based on the given slug
+     *
+     * @param string $slug The slug of the single
+     *
+     * @return ?Single null|The requested single
+     */
+    public function findBySlug(string $slug): ?Single
+    {
+        $contentType = $this->getContentType('single');
+        if (! $contentType) {
+            return null;
+        }
+        $content = $this->contentRepository->findOneBySlug($slug, $contentType);
+
+        return $this->buildSingle($content);
+    }
+
+    /**
+     * Remove the package from the the given single
+     *
+     * @param string $slug The slug of the single you want to remove the package from
+     * @param string $packageSlug The slug of the package to remove
+     *
+     * @return bool Was it successful?
+     */
+    public function removePackage(string $slug, string $packageSlug): bool
+    {
+        return $this->removePackageTaxonomy('single', $slug, $packageSlug);
     }
 
     /**

@@ -91,20 +91,20 @@ class PackageController extends TwigAwareController
 
             return $response;
         }
-        $content = json_decode($request->getContent());
+        $data = json_decode($request->getContent());
         $errors = [];
-        if (! isset($content->slug) || empty($content->slug)) {
+        if (! isset($data->slug) || empty($data->slug)) {
             $errors[] = 'Missing the package slug.';
         }
-        if (! isset($content->related)) {
+        if (! isset($data->related)) {
             $errors[] = 'Missing the related content.';
         }
-        if (! isset($content->related->content_type) || empty($content->related->content_type)) {
+        if (! isset($data->related->content_type) || empty($data->related->content_type)) {
             $errors[] = 'Missing the related content type.';
-        } elseif (! \in_array($content->related->content_type, ['collection', 'single'], true)) {
+        } elseif (! \in_array($data->related->content_type, ['collection', 'single'], true)) {
             $errors[] = 'Related content type can only be a collection or a single.';
         }
-        if (! isset($content->related->slug) || empty($content->related->slug)) {
+        if (! isset($data->related->slug) || empty($data->related->slug)) {
             $errors[] = 'Missing the related slug.';
         }
         if (! empty($errors)) {
@@ -115,46 +115,38 @@ class PackageController extends TwigAwareController
 
             return $response;
         }
-        $state = '';
-        if ('collection' === $content->related->content_type) {
-            $collection = $this->collectionsStore->findBySlug($content->related->slug);
-            if (! $collection) {
-                $response = new Response(json_encode([
-                    'errors' => 'You must provide a valid collection.',
-                ]), 400);
-                $response->headers->set('Content-Type', 'application/json');
+        if ('collection' === $data->related->content_type) {
+            $store = $this->collectionsStore;
+        } else {
+            $store = $this->singlesStore;
+        }
+        $content = $store->findBySlug($data->related->slug);
+        if (! $content) {
+            $response = new Response(json_encode([
+                'errors' => 'You must provide a valid collection/single.',
+            ]), 400);
+            $response->headers->set('Content-Type', 'application/json');
 
-                return $response;
-            }
-            if (\in_array($content->slug, $collection->getPackages(), true)) {
-                // remove the package
-                $success = $this->collectionsStore->removePackage($content->related->slug, $content->slug);
-                if (! $success) {
-                    $response = new Response(json_encode([
-                        'errors' => 'Unable to remove the provided package.',
-                    ]), 500);
-                    $response->headers->set('Content-Type', 'application/json');
+            return $response;
+        }
+        if (\in_array($data->slug, $content->getPackages(), true)) {
+            $state = 'removed';
+            $success = $store->removePackage($data->related->slug, $data->slug);
+        } else {
+            $state = 'added';
+            $success = $store->addPackage($data->related->slug, $data->slug);
+        }
+        if (! $success) {
+            $response = new Response(json_encode([
+                'errors' => 'Unable to modify the content\'s package.',
+            ]), 500);
+            $response->headers->set('Content-Type', 'application/json');
 
-                    return $response;
-                }
-                $state = 'removed';
-            } else {
-                // add the package
-                $success = $this->collectionsStore->addPackage($content->related->slug, $content->slug);
-                if (! $success) {
-                    $response = new Response(json_encode([
-                        'errors' => 'Unable to add the provided package.',
-                    ]), 500);
-                    $response->headers->set('Content-Type', 'application/json');
-
-                    return $response;
-                }
-                $state = 'added';
-            }
+            return $response;
         }
         $response = new Response(json_encode([
             'state' => $state,
-        ]));
+        ]), 200);
         $response->headers->set('Content-Type', 'application/json');
 
         return $response;
