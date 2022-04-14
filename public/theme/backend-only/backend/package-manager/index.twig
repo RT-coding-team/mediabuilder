@@ -15,11 +15,10 @@
                 <p>
                     <select class="full-width form-control" name="package" id="package-selector">
                         {% for package in packages %}
-                            <option value="{{ package.slug }}">{{ package.title }}</option>
+                            <option value="{{ package.slug }}" data-toggle-url="{{ path('app_packages_toggle', {'slug':  package.slug}) }}">{{ package.title }}</option>
                         {% endfor %}
                     </select>
                 </p>
-                <p><a href="{{ path('app_packages_toggle', {'slug':  'silly'}) }}" id="toggle-package">TRIGGER</a></p>
             </div>
         </div>
     </div>
@@ -34,7 +33,7 @@
                         <tbody>
                             {% for collection in collections %}
                                 <tr>
-                                    <td><input type="checkbox" class="include-checkbox" data-slug="{{ collection.storedSlug }}" data-packages="{{ collection.getPackages()|join('|') }}"></td>
+                                    <td><input type="checkbox" class="include-checkbox" data-slug="{{ collection.storedSlug }}" data-content-type="collection" data-packages="{{ collection.getPackages()|join('|') }}"></td>
                                     <td>{{ collection.title }}</td>
                                 </tr>
                             {% endfor %}
@@ -53,7 +52,7 @@
                         <tbody>
                             {% for single in singles %}
                                 <tr>
-                                    <td><input type="checkbox" class="include-checkbox" data-slug="{{ single.slug }}" data-packages="{{ single.getPackages()|join('|') }}"></td>
+                                    <td><input type="checkbox" class="include-checkbox" data-slug="{{ single.slug }}" data-content-type="single" data-packages="{{ single.getPackages()|join('|') }}"></td>
                                     <td>{{ single.title }}</td>
                                 </tr>
                             {% endfor %}
