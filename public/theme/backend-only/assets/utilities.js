@@ -2,46 +2,81 @@
  * Common utility functions
  */
 /**
- * On Ready function
+ * Find a $_GET parameter
  *
- * @param  {Function} callback The call back to call when ready.
+ * @param  {string} name The parameter name
+ * @return {string}      The value
+ */
+function findGetParameter(name) {
+  var result = '';
+  var tmp = [];
+  location.search
+  .substr(1)
+  .split('&')
+  .forEach(function(item) {
+    tmp = item.split('=');
+    if (tmp[0] === name) result = decodeURIComponent(tmp[1]);
+  });
+  return result;
+}
+/**
+ * Are we using https?
+ *
+ * @return {Boolean} yes|no
+ */
+function isSiteSecure() {
+  return (window.location.protocol === 'https:');
+}
+/**
+ * Notify the viewer
+ *
+ * @param  {string}  message   The message to display
+ * @param  {Boolean} isSuccess is it a success message?
  * @return {void}
  */
-function ready(callback) {
-  if (document.readyState != 'loading'){
-    callback();
-  } else {
-    document.addEventListener('DOMContentLoaded', callback);
+function notify(message, isSuccess) {
+  var klass = 'alert-danger';
+  var label = 'Error!';
+  if (isSuccess) {
+    klass = 'alert-success';
+    label = 'Success!';
   }
+  var html = '<div class="alert '+klass+'" role="alert"><h4 class="alert-heading">'+label+'</h4><p>'+message+'</p></div>';
+  $('#message-holder').html(html);
 }
 /**
- * Make an http get request
+ * Pad a value with a zero.
  *
- * @param  {string}     url     The url to call
- * @param  {function}   onLoad  Callback for onload
- * @param  {function}   onError Callback for onerror
- * @return {void}
+ * @param  {Number} var The number to zero pad
+ * @return {string}     The zero padded value
  */
-function getRequest(url, onLoad, onError) {
-  var request = new XMLHttpRequest();
-  request.open('GET', url, true);
-  request.onload = onLoad;
-  request.onerror = onError;
-  request.send();
+function pad(value) {
+    if(value < 10) {
+        return '0' + value;
+    } else {
+        return value.toString();
+    }
 }
 /**
- * Make an http post request
+ * Convert a timestamp into a pretty format
  *
- * @param  {string}     url     The url to call
- * @param  {object}     payload The payload to send
- * @param  {function}   onLoad  Callback for onload
- * @param  {function}   onError Callback for onerror
- * @return {void}
+ * @param  {Number} timestamp The timestamp
+ * @return {string}           The result
+ * @link https://stackoverflow.com/a/6078873/4638563
  */
-function postRequest(url, payload, onLoad, onError) {
-  var request = new XMLHttpRequest();
-  request.open('POST', url, true);
-  request.onload = onLoad;
-  request.onerror = onError;
-  request.send(JSON.stringify(payload));
+function prettyTimestamp(timestamp) {
+  var date = new Date(timestamp*1000);
+  var months = ['Jan.','Feb.','Mar.','Apr.','May','June','July','Aug.','Sept.','Oct.','Nov.','Dec.'];
+  var year = date.getFullYear();
+  var month = months[date.getMonth()];
+  var day = date.getDate();
+  var hour = date.getHours();
+  var meridian = 'AM';
+  if (hour > 12) {
+    hour -= 12;
+    meridian = 'PM';
+  }
+  var min = pad(date.getMinutes());
+  var sec = pad(date.getSeconds());
+  return month + ' ' + day + ', ' + year + ' @ ' + hour + ':' + min + ':' + sec + ' ' + meridian;
 }

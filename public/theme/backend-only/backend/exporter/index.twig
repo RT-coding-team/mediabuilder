@@ -3,6 +3,7 @@
 {% block title %}<i class="fas fa-parachute-box"></i> Export Packages{% endblock %}
 {% block stylesheets %}
     {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/modal.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/exporter.css') }}" />
 {% endblock %}
 {% block main %}
@@ -40,7 +41,7 @@
                                 </a>
                                 <button type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="btn btn-sm btn-secondary edit-actions__dropdown-toggler dropdown-toggle dropdown-toggle-split"><span class="sr-only">Toggle Dropdown</span></button>
                                 <div class="edit-actions__dropdown dropdown-menu dropdown-menu-right">
-                                    <form class="delete-archive" action="{{ path('app_exporter_delete') }}" method="post">
+                                    <form class="delete-archive" action="{{ path('app_exporter_delete') }}" data-file="{{ file.filename }}" method="post">
                                         <input type="hidden" name="_method" value="DELETE" />
                                         <input type="hidden" name="filename" value="{{ file.filename }}" />
                                         <a href="#" class="dropdown-item delete-link">
@@ -55,9 +56,12 @@
             {% endfor %}
         </tbody>
     </table>
+    {% include '@partials/confirm-modal.twig' with {'modal_id': 'confirm-delete-modal', 'title': 'Confirm', 'content': 'Are you sure you wish to delete this archive?'} %}
+    {% include '@partials/confirm-modal.twig' with {'modal_id': 'confirm-export-modal', 'title': 'Confirm', 'content': 'This may take a while to build. You can close the window and come back later. Do you want to continue?'} %}
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/micromodal/0.4.10/micromodal.min.js" integrity="sha512-qcwcAul7d7yUcoz3MmQABiaGDa+gVkaDWgZX6wEd/z3I6z62nQCDW3EqioQG+O+QlGCpxmJLdH5snh4IaDPiPA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js" integrity="sha256-0H3Nuz3aug3afVbUlsu12Puxva3CP4EhJtPExqs54Vg=" crossorigin="anonymous"></script>
     <script src="{{ asset('assets/utilities.js') }}"></script>
     <script src="{{ asset('assets/exporter.js') }}"></script>
