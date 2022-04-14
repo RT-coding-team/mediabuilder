@@ -14,9 +14,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use Webmozart\PathUtil\Path;
 
 /**
- * The parent class for the stores
+ * The parent class for the Content based stores
  */
-class BaseStore
+class BaseContentStore
 {
     /**
      * The url for the site.

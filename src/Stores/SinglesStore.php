@@ -11,7 +11,7 @@ use Bolt\Enum\Statuses;
 /**
  * A data store for singles.
  */
-class SinglesStore extends BaseStore
+class SinglesStore extends BaseContentStore
 {
     /**
      * Add a package to the single

@@ -12,7 +12,7 @@ use Bolt\Enum\Statuses;
 /**
  * A data store for collections
  */
-class CollectionsStore extends BaseStore
+class CollectionsStore extends BaseContentStore
 {
     /**
      * Add a package to the collection

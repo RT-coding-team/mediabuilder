@@ -11,7 +11,7 @@ use Bolt\Enum\Statuses;
 /**
  * A data store for retrieving the current courses.
  */
-class CoursesStore extends BaseStore
+class CoursesStore extends BaseContentStore
 {
     /**
      * Find all the Courses
