@@ -5,13 +5,22 @@ declare(strict_types=1);
 namespace App\Stores;
 
 use App\Models\Package;
+use Bolt\Common\Str;
 use Bolt\Repository\TaxonomyRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * A data store for packages
  */
 class PackagesStore
 {
+    /**
+     * Doctrine's entity manager
+     *
+     * @var EntityManagerInterface
+     */
+    protected $entityManager = null;
+
     /**
      * The repository for retrieving taxonomy
      *
@@ -22,12 +31,36 @@ class PackagesStore
     /**
      * Build the store
      *
+     * @param EntityManagerInterface $entityManager Doctrine's entity manager
      * @param TaxonomyRepository $taxonomyRepository Bolt's Taxonomy Repository
      */
     public function __construct(
+        EntityManagerInterface $entityManager,
         TaxonomyRepository $taxonomyRepository
     ) {
+        $this->entityManager = $entityManager;
         $this->taxonomyRepository = $taxonomyRepository;
+    }
+
+    /**
+     * Create a new package
+     *
+     * @param string $name The name for the package
+     *
+     * @return bool This it create successfully?
+     */
+    public function create(string $name): bool
+    {
+        $slug = Str::slug($name);
+        $exists = $this->findBySlug($slug);
+        if ($exists) {
+            return false;
+        }
+        $taxonomy = $this->taxonomyRepository->factory('packages', $slug, $name);
+        $this->entityManager->persist($taxonomy);
+        $this->entityManager->flush();
+
+        return true;
     }
 
     /**

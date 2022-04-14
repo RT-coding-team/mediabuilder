@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ asset('assets/package-manager.css') }}" />
 {% endblock %}
 {% block main %}
+    <div id="message-holder"></div>
     <div id="package-selector-wrapper" class="card mb-3">
         <div class="card-header">
             <i class="fas fa-box"></i> Package
@@ -78,11 +79,11 @@
                     </div>
                 </header>
                 <main class="modal__content">
-                    <form id="package-form" action="" method="post">
+                    <form id="package-form" action="{{ path('app_packages_create') }}" method="post">
                         <div class="form-group row">
                             <label for="form-package-name" class="col-sm-2 col-form-label">Name</label>
                             <div class="col-sm-10">
-                              <input type="text" class="form-control" id="form-package-name">
+                              <input type="text" class="form-control" id="form-package-name" name="name">
                             </div>
                         </div>
                     </form>

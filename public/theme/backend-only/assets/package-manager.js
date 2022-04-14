@@ -83,7 +83,28 @@ $(function() {
   });
   $('#package-form-modal button.trigger-confirm').on('click', function(event) {
     event.stopPropagation();
-    MicroModal.close('package-form-modal');
+    var $input = $('#package-form #form-package-name');
+    var name = $input.val();
+    $.ajax({
+      type: 'POST',
+      url: $('#package-form').attr('action'),
+      data: JSON.stringify({'name': name}),
+      dataType: 'json',
+    })
+      .done(function(data, textStatus, xhr) {
+        if (xhr.status === 201) {
+          notify('The package has been created.', true);
+        } else {
+          notify('There was a problem creating the package. Please try again later.', false);
+        }
+        MicroModal.close('package-form-modal');
+        $input.val('');
+      })
+      .fail(function() {
+        notify('There was a problem creating the package. Please try again later.', false);
+        MicroModal.close('package-form-modal');
+        $input.val('');
+      });
     return false;
   });
 });

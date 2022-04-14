@@ -70,6 +70,47 @@ class PackageController extends TwigAwareController
     }
 
     /**
+     * @Route("/packages", name="app_packages_create", methods={"POST"})
+     *
+     * Create a new package
+     */
+    public function create(Request $request): Response
+    {
+        if (! $this->authorizationChecker->isGranted(Constants::PACKAGE_MANAGER_REQUIRED_PERMISSION)) {
+            $response = new Response(json_encode([]), 403);
+            $response->headers->set('Content-Type', 'application/json');
+
+            return $response;
+        }
+        $data = json_decode($request->getContent());
+        $errors = [];
+        if (! isset($data->name) || empty($data->name)) {
+            $errors[] = 'Missing the package slug.';
+        }
+        if (! empty($errors)) {
+            $response = new Response(json_encode([
+                'errors' => $errors,
+            ]), 400);
+            $response->headers->set('Content-Type', 'application/json');
+
+            return $response;
+        }
+        $success = $this->packagesStore->create($data->name);
+        if (! $success) {
+            $response = new Response(json_encode([
+                'errors' => 'Unable to create the package.',
+            ]), 500);
+            $response->headers->set('Content-Type', 'application/json');
+
+            return $response;
+        }
+        $response = new Response(json_encode([]), 201);
+        $response->headers->set('Content-Type', 'application/json');
+
+        return $response;
+    }
+
+    /**
      * @Route("/packages/toggle/{slug}", name="app_packages_toggle", methods={"POST"})
      *
      * Add/Remove the package for the given content type.
