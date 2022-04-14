@@ -63,5 +63,5 @@ Retrieve a list of archives that are currently available.  This does not require
 Here is a list of libraries being used in the backend to make development easier:
 
 - [Bootstrap 4](https://getbootstrap.com/docs/4.1/)
-- [Bootbox](http://bootboxjs.com/)
+- [Bootbox](http://bootboxjs.com/) doesn't work because JQuery is not loaded yet.  Instead I use [MicroModal](https://micromodal.vercel.app/).
 - [JQuery](https://api.jquery.com/)
