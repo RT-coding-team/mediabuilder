@@ -24,26 +24,7 @@ class CollectionsStore extends BaseStore
      */
     public function addPackage(string $slug, string $packageSlug): bool
     {
-        $contentType = $this->getContentType('collection');
-        if (! $contentType) {
-            return false;
-        }
-        $content = $this->contentRepository->findOneBySlug($slug, $contentType);
-        if (! $content) {
-            return false;
-        }
-        $taxonomy = $this->taxonomyRepository->findOneBy([
-            'type' => 'packages',
-            'slug' => $packageSlug,
-        ]);
-        if (! $taxonomy) {
-            return false;
-        }
-        $content->addTaxonomy($taxonomy);
-        $this->entityManager->persist($content);
-        $this->entityManager->flush();
-
-        return true;
+        return $this->addPackageTaxonomy('collection', $slug, $packageSlug);
     }
 
     /**
@@ -100,30 +81,7 @@ class CollectionsStore extends BaseStore
      */
     public function removePackage(string $slug, string $packageSlug): bool
     {
-        $contentType = $this->getContentType('collection');
-        if (! $contentType) {
-            return false;
-        }
-        $content = $this->contentRepository->findOneBySlug($slug, $contentType);
-        if (! $content) {
-            return false;
-        }
-        $packageTaxonomy = null;
-        $packages = $content->getTaxonomies('packages');
-        foreach ($packages as $package) {
-            if ($package->getSlug() === $packageSlug) {
-                $packageTaxonomy = $package;
-                break;
-            }
-        }
-        if (! $packageTaxonomy) {
-            return false;
-        }
-        $content->removeTaxonomy($packageTaxonomy);
-        $this->entityManager->persist($content);
-        $this->entityManager->flush();
-
-        return true;
+        return $this->removePackageTaxonomy('collection', $slug, $packageSlug);
     }
 
     /**

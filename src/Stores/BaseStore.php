@@ -91,6 +91,43 @@ class BaseStore
     }
 
     /**
+     * Add a package to the content
+     *
+     * @param string $contentType The content type of the content (valid: collection or single)
+     * @param string $slug The slug of the content you want to add the package from
+     * @param string $packageSlug The slug of the package to add
+     *
+     * @return bool Was it added?
+     */
+    protected function addPackageTaxonomy(string $contentType, string $slug, string $packageSlug): bool
+    {
+        $validTypes = ['collection', 'single'];
+        if (! \in_array($contentType, $validTypes, true)) {
+            return false;
+        }
+        $contentType = $this->getContentType($contentType);
+        if (! $contentType) {
+            return false;
+        }
+        $content = $this->contentRepository->findOneBySlug($slug, $contentType);
+        if (! $content) {
+            return false;
+        }
+        $taxonomy = $this->taxonomyRepository->findOneBy([
+            'type' => 'packages',
+            'slug' => $packageSlug,
+        ]);
+        if (! $taxonomy) {
+            return false;
+        }
+        $content->addTaxonomy($taxonomy);
+        $this->entityManager->persist($content);
+        $this->entityManager->flush();
+
+        return true;
+    }
+
+    /**
      * Get the content type for the store
      *
      * @param string $slug The slug
@@ -204,5 +241,46 @@ class BaseStore
         $value = $field->getParsedValue();
 
         return $value && ('' !== $value);
+    }
+
+    /**
+     * Remove the package from the the given content
+     *
+     * @param string $contentType The content type of the content (valid: collection or single)
+     * @param string $slug The slug of the content you want to remove the package from
+     * @param string $packageSlug The slug of the package to remove
+     *
+     * @return bool Was it successful?
+     */
+    protected function removePackageTaxonomy(string $contentType, string $slug, string $packageSlug): bool
+    {
+        $validTypes = ['collection', 'single'];
+        if (! \in_array($contentType, $validTypes, true)) {
+            return false;
+        }
+        $contentType = $this->getContentType($contentType);
+        if (! $contentType) {
+            return false;
+        }
+        $content = $this->contentRepository->findOneBySlug($slug, $contentType);
+        if (! $content) {
+            return false;
+        }
+        $packageTaxonomy = null;
+        $packages = $content->getTaxonomies('packages');
+        foreach ($packages as $package) {
+            if ($package->getSlug() === $packageSlug) {
+                $packageTaxonomy = $package;
+                break;
+            }
+        }
+        if (! $packageTaxonomy) {
+            return false;
+        }
+        $content->removeTaxonomy($packageTaxonomy);
+        $this->entityManager->persist($content);
+        $this->entityManager->flush();
+
+        return true;
     }
 }
