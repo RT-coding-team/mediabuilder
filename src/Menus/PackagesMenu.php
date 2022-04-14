@@ -57,19 +57,19 @@ class PackagesMenu implements ExtensionBackendMenuInterface
                 'type' => 'separator',
             ],
         ]);
-        if ($this->authorizationChecker->isGranted(Constants::EXPORTER_REQUIRED_PERMISSION)) {
-            $menu->addChild('Export', [
-                'uri' => $this->urlGenerator->generate('app_exporter'),
-                'extras' => [
-                    'icon' => 'fa-parachute-box',
-                ],
-            ]);
-        }
         if ($this->authorizationChecker->isGranted(Constants::PACKAGE_MANAGER_REQUIRED_PERMISSION)) {
             $menu->addChild('Manage', [
                 'uri' => $this->urlGenerator->generate('app_package_manager'),
                 'extras' => [
                     'icon' => 'fas fa-boxes',
+                ],
+            ]);
+        }
+        if ($this->authorizationChecker->isGranted(Constants::EXPORTER_REQUIRED_PERMISSION)) {
+            $menu->addChild('Export', [
+                'uri' => $this->urlGenerator->generate('app_exporter'),
+                'extras' => [
+                    'icon' => 'fa-parachute-box',
                 ],
             ]);
         }
