@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Commands;
 
-use App\Defaults\ExporterDefaults;
+use App\Constants;
 use App\Stores\CollectionsStore;
 use App\Stores\PackagesStore;
 use App\Stores\SinglesStore;
@@ -95,9 +95,11 @@ class ExportCommand extends Command
      */
     public function __construct(
         BoltConfig $boltConfig,
+        CollectionsStore $collectionsStore,
         ContentRepository $contentRepository,
         EntityManagerInterface $entityManager,
         RelationRepository $relationRepository,
+        SinglesStore $singlesStore,
         TaxonomyRepository $taxonomyRepository
     ) {
         parent::__construct();
@@ -109,31 +111,17 @@ class ExportCommand extends Command
         }
         $publicPath = $this->config->get('exporter/public_path');
         if (! $publicPath) {
-            $publicPath = ExporterDefaults::PUBLIC_PATH;
+            $publicPath = Constants::EXPORTS_PUBLIC_PATH;
         }
         $this->directories['public'] = Path::canonicalize(\dirname(__DIR__, 2).'/public/');
         $this->directories['exports'] = Path::canonicalize($this->directories['public'].$publicPath);
         if (! file_exists($this->directories['exports'])) {
             mkdir($this->directories['exports'], 0777, true);
         }
-        $this->collectionsStore = new CollectionsStore(
-            $boltConfig,
-            $contentRepository,
-            $entityManager,
-            $relationRepository,
-            $taxonomyRepository,
-            $this->directories['public'],
-            $siteUrl
-        );
-        $this->singlesStore = new SinglesStore(
-            $boltConfig,
-            $contentRepository,
-            $entityManager,
-            $relationRepository,
-            $taxonomyRepository,
-            $this->directories['public'],
-            $siteUrl
-        );
+        $this->collectionsStore = $collectionsStore;
+        $this->collectionsStore->siteUrl = $siteUrl;
+        $this->singlesStore = $singlesStore;
+        $this->collectionsStore->siteUrl = $siteUrl;
         $this->packagesStore = new PackagesStore($taxonomyRepository);
     }
 
@@ -189,7 +177,7 @@ class ExportCommand extends Command
         $results = [];
         $supported = $this->config->get('exporter/supported_languages');
         if (! $supported) {
-            $supported = ExporterDefaults::SUPPORTED_LANGUAGES;
+            $supported = Constants::DEFAULT_SUPPORTED_LANGUAGES;
         }
         $packages = $this->packagesStore->findAll();
         foreach ($packages as $package) {

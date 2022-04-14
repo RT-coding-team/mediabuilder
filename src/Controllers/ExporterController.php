@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Defaults\ExporterDefaults;
+use App\Constants;
 use App\Stores\PackagesStore;
 use App\Utilities\Config;
 use Bolt\Controller\Backend\BackendZoneInterface;
@@ -156,7 +156,7 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
         $files = [];
         $dateFormat = $this->exportConfig->get('exporter/file_date_suffix');
         if (! $dateFormat) {
-            $dateFormat = ExporterDefaults::FILE_DATE_SUFFIX;
+            $dateFormat = Constants::DEFAULT_FILE_DATE_SUFFIX;
         }
         foreach (glob($this->paths['export'].'/*.zip') as $filename) {
             $pieces = explode('_', basename($filename, '.zip'));
@@ -206,6 +206,6 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
      */
     private function isAllowed(): bool
     {
-        return $this->authorizationChecker->isGranted(ExporterDefaults::REQUIRED_PERMISSION);
+        return $this->authorizationChecker->isGranted(Constants::EXPORTER_REQUIRED_PERMISSION);
     }
 }

@@ -60,6 +60,7 @@ class CollectionsStore extends BaseStore
 
     /**
      * Remove the package from the the given collection
+     *
      * @param string $slug The slug of the collection you want to remove the package from
      * @param string $packageSlug The slug of the package to remove
      *

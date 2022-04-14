@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Menus;
 
-use App\Defaults\ExporterDefaults;
-use App\Defaults\PackageManagerDefaults;
+use App\Constants;
 use Bolt\Menu\ExtensionBackendMenuInterface;
 use Knp\Menu\MenuItem;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -47,8 +46,8 @@ class PackagesMenu implements ExtensionBackendMenuInterface
     public function addItems(MenuItem $menu): void
     {
         if (
-            ! $this->authorizationChecker->isGranted(PackageManagerDefaults::REQUIRED_PERMISSION) &&
-            (! $this->authorizationChecker->isGranted(ExporterDefaults::REQUIRED_PERMISSION))
+            ! $this->authorizationChecker->isGranted(Constants::EXPORTER_REQUIRED_PERMISSION) &&
+            (! $this->authorizationChecker->isGranted(Constants::PACKAGE_MANAGER_REQUIRED_PERMISSION))
         ) {
             return;
         }
@@ -58,7 +57,7 @@ class PackagesMenu implements ExtensionBackendMenuInterface
                 'type' => 'separator',
             ],
         ]);
-        if ($this->authorizationChecker->isGranted(ExporterDefaults::REQUIRED_PERMISSION)) {
+        if ($this->authorizationChecker->isGranted(Constants::EXPORTER_REQUIRED_PERMISSION)) {
             $menu->addChild('Export', [
                 'uri' => $this->urlGenerator->generate('app_exporter'),
                 'extras' => [
@@ -66,7 +65,7 @@ class PackagesMenu implements ExtensionBackendMenuInterface
                 ],
             ]);
         }
-        if ($this->authorizationChecker->isGranted(PackageManagerDefaults::REQUIRED_PERMISSION)) {
+        if ($this->authorizationChecker->isGranted(Constants::PACKAGE_MANAGER_REQUIRED_PERMISSION)) {
             $menu->addChild('Manage', [
                 'uri' => $this->urlGenerator->generate('app_package_manager'),
                 'extras' => [

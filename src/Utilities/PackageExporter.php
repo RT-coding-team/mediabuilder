@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Utilities;
 
-use App\Defaults\ExporterDefaults;
+use App\Constants;
 use App\Models\Collection;
 use App\Models\Language;
 use App\Models\Package;
@@ -135,7 +135,7 @@ class PackageExporter
         $this->config = $config;
         $this->fileDateSuffix = $this->config->get(
             'exporter/file_date_suffix',
-            ExporterDefaults::FILE_DATE_SUFFIX
+            Constants::DEFAULT_FILE_DATE_SUFFIX
         );
         $this->fileLogger = $fileLogger;
         $logoPath = $this->config->get('exporter/logo_public_path');
@@ -147,7 +147,7 @@ class PackageExporter
         }
         $this->supportedLanguages = $this->config->get(
             'exporter/supported_languages',
-            ExporterDefaults::SUPPORTED_LANGUAGES
+            Constants::DEFAULT_SUPPORTED_LANGUAGES
         );
     }
 

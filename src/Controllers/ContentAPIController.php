@@ -12,7 +12,6 @@ use Bolt\Repository\RelationRepository;
 use Bolt\Repository\TaxonomyRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
-use Webmozart\PathUtil\Path;
 
 /**
  * An API for retrieving information about content in the Bolt instance.
@@ -37,20 +36,12 @@ class ContentAPIController extends TwigAwareController
     public function __construct(
         BoltConfig $boltConfig,
         ContentRepository $contentRepository,
+        CoursesStore $coursesStore,
         EntityManagerInterface $entityManager,
         RelationRepository $relationRepository,
         TaxonomyRepository $taxonomyRepository
     ) {
-        $publicPath = Path::canonicalize(\dirname(__DIR__, 2).'/public/');
-        $this->coursesStore = new CoursesStore(
-            $boltConfig,
-            $contentRepository,
-            $entityManager,
-            $relationRepository,
-            $taxonomyRepository,
-            $publicPath,
-            ''
-        );
+        $this->coursesStore = $coursesStore;
     }
 
     /**

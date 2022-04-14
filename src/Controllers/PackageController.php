@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Defaults\PackageManagerDefaults;
+use App\Constants;
 use App\Stores\CollectionsStore;
 use App\Stores\PackagesStore;
 use App\Stores\SinglesStore;
@@ -18,7 +18,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
-use Webmozart\PathUtil\Path;
 
 /**
  * Controller for handling packages.
@@ -56,33 +55,18 @@ class PackageController extends TwigAwareController
     public function __construct(
         AuthorizationCheckerInterface $authorizationChecker,
         BoltConfig $boltConfig,
+        CollectionsStore $collectionsStore,
         ContentRepository $contentRepository,
         EntityManagerInterface $entityManager,
         PackagesStore $packagesStore,
         RelationRepository $relationRepository,
+        SinglesStore $singlesStore,
         TaxonomyRepository $taxonomyRepository
     ) {
-        $publicPath = Path::canonicalize(\dirname(__DIR__, 2).'/public/');
         $this->authorizationChecker = $authorizationChecker;
-        $this->collectionsStore = new CollectionsStore(
-            $boltConfig,
-            $contentRepository,
-            $entityManager,
-            $relationRepository,
-            $taxonomyRepository,
-            $publicPath,
-            ''
-        );
+        $this->collectionsStore = $collectionsStore;
         $this->packagesStore = $packagesStore;
-        $this->singlesStore = new SinglesStore(
-            $boltConfig,
-            $contentRepository,
-            $entityManager,
-            $relationRepository,
-            $taxonomyRepository,
-            $publicPath,
-            ''
-        );
+        $this->singlesStore = $singlesStore;
     }
 
     /**
@@ -101,7 +85,7 @@ class PackageController extends TwigAwareController
      */
     public function togglePackage(Request $request, string $slug): Response
     {
-        if (! $this->authorizationChecker->isGranted(PackageManagerDefaults::REQUIRED_PERMISSION)) {
+        if (! $this->authorizationChecker->isGranted(Constants::PACKAGE_MANAGER_REQUIRED_PERMISSION)) {
             $response = new Response(json_encode([]), 403);
             $response->headers->set('Content-Type', 'application/json');
 
@@ -142,7 +126,7 @@ class PackageController extends TwigAwareController
 
                 return $response;
             }
-            if (\in_array($content->slug, $collection->getPackages())) {
+            if (\in_array($content->slug, $collection->getPackages(), true)) {
                 // remove the package
                 $success = $this->collectionsStore->removePackage($content->related->slug, $content->slug);
                 if (! $success) {

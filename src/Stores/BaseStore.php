@@ -19,6 +19,13 @@ use Webmozart\PathUtil\Path;
 class BaseStore
 {
     /**
+     * The url for the site.
+     *
+     * @var string
+     */
+    public $siteUrl = '';
+
+    /**
      * Bolt's configuration class
      *
      * @var Config
@@ -47,13 +54,6 @@ class BaseStore
     protected $entityManager = null;
 
     /**
-     * The directory for public files
-     *
-     * @var string
-     */
-    protected $publicDirectory = '';
-
-    /**
      * The repository for retrieving related items
      *
      * @var ContentRepository
@@ -68,13 +68,6 @@ class BaseStore
     protected $taxonomyRepository;
 
     /**
-     * The url for the site.
-     *
-     * @var string
-     */
-    protected $siteUrl = '';
-
-    /**
      * Build the store
      *
      * @param Config $config Bolt's configuration class
@@ -82,28 +75,19 @@ class BaseStore
      * @param EntityManagerInterface $entityManager Doctrine's entity manager
      * @param RelationRepository $relationRepository Bolt's Related Repository
      * @param TaxonomyRepository $taxonomyRepository Bolt's Taxonomy Repository
-     * @param string $publicDirectory The public directory
-     * @param string $siteUrl The url for the site
      */
     public function __construct(
         Config $config,
         ContentRepository $contentRepository,
         EntityManagerInterface $entityManager,
         RelationRepository $relationRepository,
-        TaxonomyRepository $taxonomyRepository,
-        string $publicDirectory,
-        string $siteUrl
+        TaxonomyRepository $taxonomyRepository
     ) {
-        if (! file_exists($publicDirectory)) {
-            throw new \InvalidArgumentException('The public directory does not exist!');
-        }
         $this->boltConfig = $config;
         $this->contentRepository = $contentRepository;
         $this->entityManager = $entityManager;
         $this->relationRepository = $relationRepository;
         $this->taxonomyRepository = $taxonomyRepository;
-        $this->publicDir = $publicDirectory;
-        $this->siteUrl = $siteUrl;
     }
 
     /**
@@ -129,8 +113,9 @@ class BaseStore
     protected function getFileFieldPublicPath(Content $content, string $fieldName): string
     {
         $file = $this->getTranslatedValue($content, $fieldName);
+        $publicPath = Path::canonicalize(\dirname(__DIR__, 2).'/public/');
 
-        return Path::join($this->publicDir, $file['path']);
+        return Path::join($publicPath, $file['path']);
     }
 
     /**

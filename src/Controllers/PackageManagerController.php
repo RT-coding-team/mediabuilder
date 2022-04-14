@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Defaults\PackageManagerDefaults;
+use App\Constants;
 use App\Stores\CollectionsStore;
 use App\Stores\PackagesStore;
 use App\Stores\SinglesStore;
@@ -18,7 +18,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
-use Webmozart\PathUtil\Path;
 
 /**
  * The controller for the package manager
@@ -56,33 +55,18 @@ class PackageManagerController extends TwigAwareController implements BackendZon
     public function __construct(
         AuthorizationCheckerInterface $authorizationChecker,
         BoltConfig $boltConfig,
+        CollectionsStore $collectionsStore,
         ContentRepository $contentRepository,
         EntityManagerInterface $entityManager,
         PackagesStore $packagesStore,
         RelationRepository $relationRepository,
+        SinglesStore $singlesStore,
         TaxonomyRepository $taxonomyRepository
     ) {
-        $publicPath = Path::canonicalize(\dirname(__DIR__, 2).'/public/');
         $this->authorizationChecker = $authorizationChecker;
-        $this->collectionsStore = new CollectionsStore(
-            $boltConfig,
-            $contentRepository,
-            $entityManager,
-            $relationRepository,
-            $taxonomyRepository,
-            $publicPath,
-            ''
-        );
+        $this->collectionsStore = $collectionsStore;
         $this->packagesStore = $packagesStore;
-        $this->singlesStore = new SinglesStore(
-            $boltConfig,
-            $contentRepository,
-            $entityManager,
-            $relationRepository,
-            $taxonomyRepository,
-            $publicPath,
-            ''
-        );
+        $this->singlesStore = $singlesStore;
     }
 
     /**
@@ -92,7 +76,7 @@ class PackageManagerController extends TwigAwareController implements BackendZon
      */
     public function manage(): Response
     {
-        if (! $this->authorizationChecker->isGranted(PackageManagerDefaults::REQUIRED_PERMISSION)) {
+        if (! $this->authorizationChecker->isGranted(Constants::PACKAGE_MANAGER_REQUIRED_PERMISSION)) {
             return $this->redirectToRoute('bolt_dashboard');
         }
 
