@@ -3,6 +3,7 @@
 {% block title %}<i class="fas fa-boxes"></i> Package Manager{% endblock %}
 {% block stylesheets %}
     {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/modal.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/package-manager.css') }}" />
 {% endblock %}
 {% block main %}
@@ -65,9 +66,38 @@
             </div>
         </div>
     </div>
+    <div class="modal" id="package-form-modal" aria-hidden="true">
+        <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+            <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
+                <header class="modal__header row">
+                    <div class="col-sm">
+                        <h3 class="modal__title text-primary">Add a Package</h3>
+                    </div>
+                    <div class="col-sm text-right">
+                        <button class="modal__close float-right btn btn-link" aria-label="Close modal" data-micromodal-close><i class="fas fa-times"></i></button>
+                    </div>
+                </header>
+                <main class="modal__content">
+                    <form id="package-form" action="" method="post">
+                        <div class="form-group row">
+                            <label for="form-package-name" class="col-sm-2 col-form-label">Name</label>
+                            <div class="col-sm-10">
+                              <input type="text" class="form-control" id="form-package-name">
+                            </div>
+                        </div>
+                    </form>
+                </main>
+                <footer class="modal__footer float-right">
+                    <button class="btn btn-primary trigger-confirm">Save</button>
+                    <button class="btn btn-sm btn-secondary trigger-cancel" data-micromodal-close aria-label="Close this dialog window">Cancel</button>
+                </footer>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/micromodal/0.4.10/micromodal.min.js" integrity="sha512-qcwcAul7d7yUcoz3MmQABiaGDa+gVkaDWgZX6wEd/z3I6z62nQCDW3EqioQG+O+QlGCpxmJLdH5snh4IaDPiPA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="{{ asset('assets/utilities.js') }}"></script>
     <script src="{{ asset('assets/package-manager.js') }}"></script>
 {% endblock %}

@@ -61,6 +61,7 @@ function togglePackage(element$) {
  * Ready function
  */
 $(function() {
+  MicroModal.init();
   var selector$ = $('#package-selector');
   var selected$ = selector$.find(':selected');
   currentPackage.slug = selected$.val();
@@ -74,5 +75,15 @@ $(function() {
   });
   $('input.include-checkbox').on('change', function() {
     togglePackage($(this));
+  });
+  $('#add-package-button').on('click', function(event) {
+    event.stopPropagation();
+    MicroModal.show('package-form-modal');
+    return false;
+  });
+  $('#package-form-modal button.trigger-confirm').on('click', function(event) {
+    event.stopPropagation();
+    MicroModal.close('package-form-modal');
+    return false;
   });
 });
