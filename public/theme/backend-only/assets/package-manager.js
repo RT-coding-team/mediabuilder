@@ -13,79 +13,66 @@ var currentPackage = {
  * @return {void}
  */
 function changePackage() {
-  var checkboxes = document.getElementsByClassName('include-checkbox');
-  for (var i = 0; i < checkboxes.length; i++) {
-    var packages = checkboxes[i].getAttribute('data-packages').split('|');
-    if (packages.indexOf(currentPackage.slug) !== -1) {
-      checkboxes[i].checked = true;
-    } else {
-      checkboxes[i].checked = false;
-    }
-  }
+  $('input.include-checkbox').each(function() {
+    var checkbox$ = $(this);
+    var packageString = checkbox$.attr('data-packages');
+    var packages = (packageString === '') ? [] : packageString.split('|');
+    var exists = (packages.indexOf(currentPackage.slug) !== -1);
+    checkbox$.prop('checked', exists);
+  });
 }
 /**
  * Send a request to toggle the package
  *
- * @param  {string}   contentType   The content type: single|collection
- * @param  {string}   contentSlug   The slug of the content
- * @param  {function} onLoad        The onload callback
+ * @param  {object}   element$  The option element selected
  * @return {void}
  */
-function togglePackage(contentType, contentSlug, onLoad) {
+function togglePackage(element$) {
   var payload = {
     slug: currentPackage.slug,
     related: {
-      content_type: contentType,
-      slug: contentSlug,
+      content_type: element$.attr('data-content-type'),
+      slug: element$.attr('data-slug'),
     },
   };
-  var onLoad = onLoad;
-  var onError = function() {
-    console.log('error');
-  };
-  postRequest(currentPackage.toggleUrl, payload, onLoad, onError);
+  $.ajax({
+    type: 'POST',
+    url: currentPackage.toggleUrl,
+    data: JSON.stringify(payload),
+    dataType: 'json',
+  }).done(function(data) {
+    var packageString = element$.attr('data-packages');
+    var packages = (packageString === '') ? [] : packageString.split('|');
+    if (data.state === 'removed') {
+        //remove the package
+        var index = packages.indexOf(currentPackage.slug);
+        if (index !== -1) {
+          packages.splice(index, 1);
+        }
+      } else {
+        //add the package
+        packages.push(currentPackage.slug);
+      }
+      console.log(packages.join('|'));
+      element$.attr('data-packages', packages.join('|'));
+  });
 }
 /**
- * Run our code
+ * Ready function
  */
-ready(function() {
-  var selector = document.getElementById('package-selector');
-  var selected = selector.options[selector.selectedIndex];
-  currentPackage.slug = selected.value;
-  currentPackage.toggleUrl = selected.getAttribute('data-toggle-url');
+$(function() {
+  var selector$ = $('#package-selector');
+  var selected$ = selector$.find(':selected');
+  currentPackage.slug = selected$.val();
+  currentPackage.toggleUrl = selected$.attr('data-toggle-url');
   changePackage();
-  selector.addEventListener('change', function(event) {
-    var selected = this.options[this.selectedIndex];
-    currentPackage.slug = selected.value;
-    currentPackage.toggleUrl = selected.getAttribute('data-toggle-url');
+  selector$.on('change', function() {
+    var selected$ = $(this).find(':selected');
+    currentPackage.slug = selected$.val();
+    currentPackage.toggleUrl = selected$.attr('data-toggle-url');
     changePackage();
   });
-  var checkboxes = document.getElementsByClassName('include-checkbox');
-  for (var i = 0; i < checkboxes.length; i++) {
-    var checkbox = checkboxes[i];
-    checkbox.addEventListener('change', function(event) {
-      var slug = this.getAttribute('data-slug');
-      var contentType = this.getAttribute('data-content-type');
-      var packageString = this.getAttribute('data-packages');
-      var packages = (packageString === '') ? [] : packageString.split('|');
-      var element = this;
-      var onLoad = function() {
-        if (this.status === 200) {
-          var data = JSON.parse(this.responseText);
-          if (data.state === 'removed') {
-            //remove the package
-            var index = packages.indexOf(currentPackage.slug);
-            if (index !== -1) {
-              packages.splice(index, 1);
-            }
-          } else {
-            //add the package
-            packages.push(currentPackage.slug);
-          }
-          element.setAttribute('data-packages', packages.join('|'));
-        }
-      };
-      togglePackage(contentType, slug, onLoad);
-    });
-  }
+  $('input.include-checkbox').on('change', function() {
+    togglePackage($(this));
+  });
 });
