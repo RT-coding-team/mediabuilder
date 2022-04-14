@@ -18,7 +18,7 @@ In order to set the supported languages for the content builder, you need to edi
 - In `config/bolt/contenttypes.yml`, add the two letter language code for each field that has a locales option.
 - In `config/services.yml`, verify the language is in the array parameters/app_locales
 
-## Usage 
+## Usage
 
 The docker installation will create an `admin` user account using the Master Password in the .env file.  You can log in and create additional users.
 
@@ -57,3 +57,11 @@ Retrieve a list of archives that are currently available.  This does not require
     }
 ]
 ```
+
+## Libraries
+
+Here is a list of libraries being used in the backend to make development easier:
+
+- [Bootstrap 4](https://getbootstrap.com/docs/4.1/)
+- [Bootbox](http://bootboxjs.com/)
+- [JQuery](https://api.jquery.com/)
