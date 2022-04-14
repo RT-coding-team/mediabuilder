@@ -15,6 +15,38 @@ use Bolt\Enum\Statuses;
 class CollectionsStore extends BaseStore
 {
     /**
+     * Add a package to the collection
+     *
+     * @param string $slug The slug of the collection you want to add the package from
+     * @param string $packageSlug The slug of the package to add
+     *
+     * @return bool Was it added?
+     */
+    public function addPackage(string $slug, string $packageSlug): bool
+    {
+        $contentType = $this->getContentType('collection');
+        if (! $contentType) {
+            return false;
+        }
+        $content = $this->contentRepository->findOneBySlug($slug, $contentType);
+        if (! $content) {
+            return false;
+        }
+        $taxonomy = $this->taxonomyRepository->findOneBy([
+            'type' => 'packages',
+            'slug' => $packageSlug,
+        ]);
+        if (! $taxonomy) {
+            return false;
+        }
+        $content->addTaxonomy($taxonomy);
+        $this->entityManager->persist($content);
+        $this->entityManager->flush();
+
+        return true;
+    }
+
+    /**
      * Find all Collections
      *
      * @param string $locale The locale to get content for (default: en)
