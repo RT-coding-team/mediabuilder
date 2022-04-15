@@ -166,7 +166,7 @@ class PackageController extends TwigAwareController
      *   },
      * };
      */
-    public function togglePackage(Request $request, string $slug): Response
+    public function toggle(Request $request, string $slug): Response
     {
         if (! $this->authorizationChecker->isGranted(Constants::PACKAGE_MANAGER_REQUIRED_PERMISSION)) {
             $response = new Response(json_encode([]), 403);
