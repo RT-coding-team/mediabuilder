@@ -98,6 +98,7 @@ class ExportCommand extends Command
         CollectionsStore $collectionsStore,
         ContentRepository $contentRepository,
         EntityManagerInterface $entityManager,
+        PackagesStore $packagesStore,
         RelationRepository $relationRepository,
         SinglesStore $singlesStore,
         TaxonomyRepository $taxonomyRepository
@@ -122,7 +123,7 @@ class ExportCommand extends Command
         $this->collectionsStore->siteUrl = $siteUrl;
         $this->singlesStore = $singlesStore;
         $this->collectionsStore->siteUrl = $siteUrl;
-        $this->packagesStore = new PackagesStore($taxonomyRepository);
+        $this->packagesStore = $packagesStore;
     }
 
     /**
