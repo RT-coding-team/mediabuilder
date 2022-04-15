@@ -24,25 +24,19 @@ frontend:
 # Place your own routes here, that have a LOWER priority than the default routes.
 
 # Routes for the project-specific functionality
-
-exporter_panel:
-  resource: '../src/Exporter/ExporterController.php'
-  prefix: '%bolt.backend_url%'
-  type: annotation
-
 exporter_api:
   path: /exporter/api/files.json
   defaults:
-    _controller: App\Exporter\ExporterController::apiFiles
+    _controller: App\Controllers\ExporterController::apiFiles
 
 api_courses:
   path: /content-api/courses.json
   defaults:
-    _controller: App\ContentAPI\ContentAPIController::courses
+    _controller: App\Controllers\ContentAPIController::courses
 
 project:
-  resource: '../src/Controller'
-  prefix: /
+  resource: '../src/Controllers'
+  prefix: '%bolt.backend_url%'
   type: annotation
 
 # ------------------------------------------------------------------------------
