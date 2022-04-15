@@ -70,6 +70,29 @@ class PackagesStore
     }
 
     /**
+     * Remove the package
+     *
+     * @param string $slug The slug of thepackage to remove
+     *
+     * @return bool Was it removed?
+     */
+    public function destroy(string $slug): bool
+    {
+        $query = $this->taxonomyRepository->findBy([
+            'type' => 'packages',
+            'slug' => $slug,
+        ]);
+        if (0 === \count($query)) {
+            return false;
+        }
+        $this->entityManager->remove($query[0]);
+        $this->entityManager->flush();
+        $exists = $this->findBySlug($slug);
+
+        return ! $exists;
+    }
+
+    /**
      * Find all packages.
      *
      * @return array an array of packages
