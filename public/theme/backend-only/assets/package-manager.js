@@ -64,13 +64,15 @@ $(function() {
   MicroModal.init();
   var selector$ = $('#package-selector');
   var selected$ = selector$.find(':selected');
-  currentPackage.slug = selected$.val();
-  currentPackage.toggleUrl = selected$.attr('data-toggle-url');
+  var slug = selected$.val();
+  currentPackage.slug = slug;
+  currentPackage.toggleUrl = selector$.attr('data-toggle-url').replace('SLUG', slug);
   changePackage();
   selector$.on('change', function() {
     var selected$ = $(this).find(':selected');
-    currentPackage.slug = selected$.val();
-    currentPackage.toggleUrl = selected$.attr('data-toggle-url');
+    var slug = selected$.val();
+    currentPackage.slug = slug;
+    currentPackage.toggleUrl = selector$.attr('data-toggle-url').replace('SLUG', slug);
     changePackage();
   });
   $('input.include-checkbox').on('change', function() {
@@ -94,6 +96,8 @@ $(function() {
       .done(function(data, textStatus, xhr) {
         if (xhr.status === 201) {
           notify('The package has been created.', true);
+          selector$.append($('<option />').val(data.package.slug).text(data.package.title));
+          sortSelector(selector$);
         } else {
           notify('There was a problem creating the package. Please try again later.', false);
         }

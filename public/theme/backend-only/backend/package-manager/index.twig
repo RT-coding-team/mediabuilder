@@ -18,9 +18,9 @@
         <div class="card-body">
             <div class="form-group">
                 <p>
-                    <select class="full-width form-control" name="package" id="package-selector">
+                    <select class="full-width form-control" name="package" id="package-selector" data-toggle-url="{{ path('app_packages_toggle', {'slug':  'SLUG'}) }}">
                         {% for package in packages %}
-                            <option value="{{ package.slug }}" data-toggle-url="{{ path('app_packages_toggle', {'slug':  package.slug}) }}">{{ package.title }}</option>
+                            <option value="{{ package.slug }}">{{ package.title }}</option>
                         {% endfor %}
                     </select>
                 </p>

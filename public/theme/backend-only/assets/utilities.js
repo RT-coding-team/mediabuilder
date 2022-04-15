@@ -80,3 +80,20 @@ function prettyTimestamp(timestamp) {
   var sec = pad(date.getSeconds());
   return month + ' ' + day + ', ' + year + ' @ ' + hour + ':' + min + ':' + sec + ' ' + meridian;
 }
+/**
+ * Sort the selector in alphabetical order
+ *
+ * @param  {object} $selector The JQuery object of the selector
+ * @return {void}
+ */
+function sortSelector($selector) {
+  var selected = $selector.val();
+  var $options = $selector.children('option');
+  $options.detach().sort(function(a,b) {
+    var at = $(a).text();
+    var bt = $(b).text();
+    return (at > bt)?1:((at < bt)?-1:0);
+  });
+  $selector.append($options);
+  $selector.val(selected);
+}

@@ -47,20 +47,26 @@ class PackagesStore
      *
      * @param string $name The name for the package
      *
-     * @return bool This it create successfully?
+     * @return Package The created package or null if exists
      */
-    public function create(string $name): bool
+    public function create(string $name): ?Package
     {
         $slug = Str::slug($name);
         $exists = $this->findBySlug($slug);
         if ($exists) {
-            return false;
+            return null;
         }
         $taxonomy = $this->taxonomyRepository->factory('packages', $slug, $name);
+        if (! $taxonomy) {
+            return null;
+        }
         $this->entityManager->persist($taxonomy);
         $this->entityManager->flush();
 
-        return true;
+        return new Package(
+            $taxonomy->getSlug(),
+            $taxonomy->getName()
+        );
     }
 
     /**

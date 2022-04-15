@@ -95,8 +95,8 @@ class PackageController extends TwigAwareController
 
             return $response;
         }
-        $success = $this->packagesStore->create($data->name);
-        if (! $success) {
+        $package = $this->packagesStore->create($data->name);
+        if (! $package) {
             $response = new Response(json_encode([
                 'errors' => 'Unable to create the package.',
             ]), 500);
@@ -104,7 +104,9 @@ class PackageController extends TwigAwareController
 
             return $response;
         }
-        $response = new Response(json_encode([]), 201);
+        $response = new Response(json_encode([
+            'package' => $package,
+        ]), 201);
         $response->headers->set('Content-Type', 'application/json');
 
         return $response;
