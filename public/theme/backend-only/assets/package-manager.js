@@ -4,6 +4,7 @@
  * @type {Object}
  */
 var currentPackage = {
+  name: '',
   slug: '',
   toggleUrl: '',
 };
@@ -53,7 +54,6 @@ function togglePackage(element$) {
         //add the package
         packages.push(currentPackage.slug);
       }
-      console.log(packages.join('|'));
       element$.attr('data-packages', packages.join('|'));
   });
 }
@@ -65,12 +65,14 @@ $(function() {
   var $selector = $('#package-selector');
   var $selected = $selector.find(':selected');
   var slug = $selected.val();
+  currentPackage.name = $selected.text();
   currentPackage.slug = slug;
   currentPackage.toggleUrl = $selector.attr('data-toggle-url').replace('SLUG', slug);
   changePackage();
   $selector.on('change', function() {
     var $selected = $(this).find(':selected');
     var slug = $selected.val();
+    currentPackage.name = $selected.text();
     currentPackage.slug = slug;
     currentPackage.toggleUrl = $selector.attr('data-toggle-url').replace('SLUG', slug);
     changePackage();
@@ -98,6 +100,7 @@ $(function() {
         if (xhr.status === 201) {
           notify('The package has been created.', true);
           var slug = data.package.slug;
+          currentPackage.name = data.package.name;
           currentPackage.slug = slug;
           currentPackage.toggleUrl = $selector.attr('data-toggle-url').replace('SLUG', slug);
           $selector.append($('<option />').val(slug).text(data.package.title));
@@ -120,6 +123,10 @@ $(function() {
   // Handle the delete button
   $('#delete-package-button').on('click', function(event) {
     event.stopPropagation();
+    $('#confirm-delete-modal')
+      .find('.modal__content')
+      .first()
+      .html('<p>Are you sure you wish to delete the package <strong>'+currentPackage.name+'</strong>?</p><p class="note">* This will not delete the Collections or Singles.</p>');
     MicroModal.show('confirm-delete-modal');
     return false;
   });
@@ -128,6 +135,7 @@ $(function() {
     var deleteUrl = $('#delete-package-button')
       .attr('data-delete-url')
       .replace('SLUG', currentPackage.slug);
+    var prevName = currentPackage.name;
     $.ajax({
       type: 'POST',
       url: deleteUrl+'?_method=DELETE',
@@ -138,18 +146,19 @@ $(function() {
           $selector.children('[value="'+currentPackage.slug+'"]').remove();
           var $first = $selector.prop('selectedIndex',0);;
           var slug = $first.val();
+          currentPackage.name = $first.text();
           currentPackage.slug = slug;
           currentPackage.toggleUrl = $selector.attr('data-toggle-url').replace('SLUG', slug);
           MicroModal.close('confirm-delete-modal');
-          notify('The package has been deleted.', true);
+          notify('The package '+prevName+' has been deleted.', true);
         } else {
           MicroModal.close('confirm-delete-modal');
-          notify('The package could not be deleted.', false);
+          notify('The package '+prevName+' could not be deleted.', false);
         }
       })
       .fail(function() {
         MicroModal.close('confirm-delete-modal');
-        notify('The package could not be deleted.', false);
+        notify('The package '+prevName+' could not be deleted.', false);
       });
     return false;
   });
