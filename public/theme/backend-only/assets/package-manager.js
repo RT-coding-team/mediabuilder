@@ -96,8 +96,13 @@ $(function() {
       .done(function(data, textStatus, xhr) {
         if (xhr.status === 201) {
           notify('The package has been created.', true);
-          $selector.append($('<option />').val(data.package.slug).text(data.package.title));
+          var slug = data.package.slug;
+          currentPackage.slug = slug;
+          currentPackage.toggleUrl = $selector.attr('data-toggle-url').replace('SLUG', slug);
+          $selector.append($('<option />').val(slug).text(data.package.title));
           sortSelector($selector);
+          $selector.val(slug);
+          changePackage();
         } else {
           notify('There was a problem creating the package. Please try again later.', false);
         }
