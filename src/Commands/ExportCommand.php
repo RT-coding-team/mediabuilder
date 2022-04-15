@@ -216,11 +216,11 @@ class ExportCommand extends Command
     private function exportPackages(array $packages): void
     {
         foreach ($packages as $package) {
-            $this->fileLogger->log('Creating package: '.$package->title);
+            $this->fileLogger->log('Creating package: '.$package->name);
             $this->packageExporter->export($package, false);
             // Create a slim version
             $this->packageExporter->export($package, true);
-            $this->fileLogger->log('Completed package: '.$package->title);
+            $this->fileLogger->log('Completed package: '.$package->name);
         }
     }
 }

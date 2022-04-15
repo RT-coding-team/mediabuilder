@@ -174,7 +174,7 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
             } else {
                 continue;
             }
-            $packageName = $package ? $package->title : '';
+            $packageName = $package ? $package->name : '';
             if (! \array_key_exists($slug, $files)) {
                 $files[$slug] = [];
             }

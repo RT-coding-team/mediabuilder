@@ -21,7 +21,7 @@ class Package
      *
      * @var string
      */
-    public $title = '';
+    public $name = '';
 
     /**
      * The collections for this package keyed with the bolt_locale_code to
@@ -49,15 +49,15 @@ class Package
     /**
      * Build a package
      *
+     * @param string $name The package name
      * @param string $slug The package slug
-     * @param string $title The package title
      */
     public function __construct(
-        string $slug,
-        string $title
+        string $name,
+        string $slug
     ) {
         $this->slug = $slug;
-        $this->title = $title;
+        $this->name = $name;
     }
 
     /**

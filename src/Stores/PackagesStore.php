@@ -64,8 +64,8 @@ class PackagesStore
         $this->entityManager->flush();
 
         return new Package(
-            $taxonomy->getSlug(),
-            $taxonomy->getName()
+            $taxonomy->getName(),
+            $taxonomy->getSlug()
         );
     }
 
@@ -105,11 +105,11 @@ class PackagesStore
         ]);
         foreach ($query as $data) {
             $packages[] = new Package(
-                $data->getSlug(),
-                $data->getName()
+                $data->getName(),
+                $data->getSlug()
             );
         }
-        usort($packages, fn ($a, $b) => strcmp($a->title, $b->title));
+        usort($packages, fn ($a, $b) => strcmp($a->name, $b->name));
 
         return $packages;
     }
@@ -132,8 +132,8 @@ class PackagesStore
         }
 
         return new Package(
-            $query[0]->getSlug(),
-            $query[0]->getName()
+            $query[0]->getName(),
+            $query[0]->getSlug()
         );
     }
 }
