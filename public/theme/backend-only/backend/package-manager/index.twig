@@ -12,7 +12,7 @@
         <div class="card-header">
             <i class="fas fa-box"></i> Package
             <div class="float-right">
-                <a href="" id="add-package-button" class="no-decoration text-primary"><i class="fas fa-plus-square"></i> Add</a>
+                <a href="#" id="add-package-button" class="no-decoration text-primary"><i class="fas fa-plus-square"></i> Add</a>
             </div>
         </div>
         <div class="card-body">
@@ -24,6 +24,9 @@
                         {% endfor %}
                     </select>
                 </p>
+                <div class="text-right">
+                    <a href="#" id="delete-package-button" class="no-decoration text-danger" data-delete-url="{{ path('app_packages_delete', {'slug':  'SLUG'}) }}"><i class="fas fa-fw fa-trash"></i> Delete</a>
+                </div>
             </div>
         </div>
     </div>
@@ -95,6 +98,7 @@
             </div>
         </div>
     </div>
+    {% include '@partials/confirm-modal.twig' with {'modal_id': 'confirm-delete-modal', 'title': 'Confirm', 'content': '<p>Are you sure you wish to delete this package?</p><p class="note">* This will not delete the Collections or Singles.</p>'} %}
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}

@@ -78,6 +78,7 @@ $(function() {
   $('input.include-checkbox').on('change', function() {
     togglePackage($(this));
   });
+  // handle the add button
   $('#add-package-button').on('click', function(event) {
     event.stopPropagation();
     MicroModal.show('package-form-modal');
@@ -113,6 +114,42 @@ $(function() {
         notify('There was a problem creating the package. Please try again later.', false);
         MicroModal.close('package-form-modal');
         $input.val('');
+      });
+    return false;
+  });
+  // Handle the delete button
+  $('#delete-package-button').on('click', function(event) {
+    event.stopPropagation();
+    MicroModal.show('confirm-delete-modal');
+    return false;
+  });
+  $('#confirm-delete-modal button.trigger-confirm').on('click', function(event) {
+    event.stopPropagation();
+    var deleteUrl = $('#delete-package-button')
+      .attr('data-delete-url')
+      .replace('SLUG', currentPackage.slug);
+    $.ajax({
+      type: 'POST',
+      url: deleteUrl+'?_method=DELETE',
+      dataType: 'json',
+    })
+      .done(function(data, textStatus, xhr) {
+        if (xhr.status === 204) {
+          $selector.children('[value="'+currentPackage.slug+'"]').remove();
+          var $first = $selector.prop('selectedIndex',0);;
+          var slug = $first.val();
+          currentPackage.slug = slug;
+          currentPackage.toggleUrl = $selector.attr('data-toggle-url').replace('SLUG', slug);
+          MicroModal.close('confirm-delete-modal');
+          notify('The package has been deleted.', true);
+        } else {
+          MicroModal.close('confirm-delete-modal');
+          notify('The package could not be deleted.', false);
+        }
+      })
+      .fail(function() {
+        MicroModal.close('confirm-delete-modal');
+        notify('The package could not be deleted.', false);
       });
     return false;
   });
