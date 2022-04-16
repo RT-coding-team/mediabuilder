@@ -193,6 +193,7 @@ class ExportCommand extends Command
      * Build the packages (its structure) with all its collections and singles into an array
      * so we can send it to the export method. We skip packages that do not have collections
      * or singles since they will have no files.
+     *
      * @param array $available An array of all the available packages from the database
      *
      * @return array The array of packages

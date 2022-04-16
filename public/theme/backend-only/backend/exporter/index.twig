@@ -8,9 +8,29 @@
 {% endblock %}
 {% block main %}
     <div id="message-holder"></div>
+    <div id="package-selector-wrapper" class="card mb-3">
+        <div class="card-header">
+            <i class="fas fa-box"></i> Package
+            <div class="float-right">
+                <a href="{{ path('app_exporter_start') }}" class="no-decoration text-primary" id="export-starter"><i class="fas fa-fw fa-wrench"></i> Export</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <p>
+                    <select class="full-width form-control" name="package" id="package-selector" data-toggle-url="{{ path('app_packages_toggle', {'slug':  'SLUG'}) }}">
+                        <option value="all">All Packages</option>
+                        {% for package in packages %}
+                            <option value="{{ package.slug }}">{{ package.name }}</option>
+                        {% endfor %}
+                    </select>
+                </p>
+            </div>
+        </div>
+    </div>
     <div>
         <p class="text-right">
-            <a href="{{ path('app_exporter_start') }}" class="btn btn-primary" id="export-starter"><i class="fas fa-fw fa-wrench"></i> Export</a>
+
         </p>
     </div>
     <table class="table table-sm table-hover">

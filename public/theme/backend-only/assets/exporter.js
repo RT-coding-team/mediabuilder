@@ -56,10 +56,16 @@ function startExport() {
   if (currentlyProcessing) {
     return false;
   }
-  setIsProcessing(true);
   var $trigger = $('#export-starter');
   var $icon = $trigger.children('i').first();
-  $.get($trigger.attr('href'))
+  var package = $('#package-selector').val();
+  var url = $trigger.attr('href');
+  if (package !== 'all') {
+    // We remove last slash if exists
+    url = url.replace(/\/$/, '')+'/'+package;
+  }
+  setIsProcessing(true);
+  $.get(url)
     .done(function(data, textStatus, xhr) {
       if (xhr.status >= 200 && xhr.status < 400) {
         notify('The export process has started!', true);

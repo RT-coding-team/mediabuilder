@@ -111,19 +111,38 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
     }
 
     /**
-     * @Route("/exporter/start", name="app_exporter_start")
+     * @Route("/exporter/start/{slug}", name="app_exporter_start", defaults={"slug"="all"})
      *
      * Start the export process
      */
-    public function start(): Response
+    public function start(string $slug): Response
     {
+        if (! $this->isAllowed()) {
+            $response = new Response(json_encode([]), 403);
+            $response->headers->set('Content-Type', 'application/json');
+
+            return $response;
+        }
+        $slugArgument = '';
+        if ('all' !== $slug) {
+            $exists = $this->packagesStore->findBySlug($slug);
+            if (! $exists) {
+                $response = new Response(json_encode([
+                    'errors' => 'The package does not exist.',
+                ]), 500);
+                $response->headers->set('Content-Type', 'application/json');
+
+                return $response;
+            }
+            $slugArgument = ' '.$slug;
+        }
         $binDir = Path::canonicalize(\dirname(__DIR__, 2).'/bin/');
         $binFile = Path::join($binDir, 'console');
         $phpFile = Path::join(PHP_BINDIR, 'php');
-        Process::fromShellCommandline($phpFile.' '.$binFile.' exporter:export &')->start();
+        Process::fromShellCommandline($phpFile.' '.$binFile.' exporter:export'.$slugArgument.' &')->start();
         $response = new Response(json_encode([
             'started' => true,
-        ]));
+        ], 200));
         $response->headers->set('Content-Type', 'application/json');
 
         return $response;
@@ -140,9 +159,11 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
             return $this->redirectToRoute('bolt_dashboard');
         }
         $media = $this->getMedia();
+        $packages = $this->packagesStore->findAll();
 
         return $this->render('backend/exporter/index.twig', [
             'media' => $media,
+            'packages' => $packages,
         ]);
     }
 
