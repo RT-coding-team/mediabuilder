@@ -12,7 +12,7 @@
         <div class="card-header">
             <i class="fas fa-box"></i> Package
             <div class="float-right">
-                <a href="#" id="add-package-button" class="no-decoration text-primary"><i class="fas fa-plus-square"></i> Add</a>
+                <a href="#" id="add-package-button" class="no-decoration text-primary" data-add-url="{{ path('app_packages_create') }}"><i class="fas fa-plus-square"></i> Add</a>
             </div>
         </div>
         <div class="card-body">
@@ -20,12 +20,13 @@
                 <p>
                     <select class="full-width form-control" name="package" id="package-selector" data-toggle-url="{{ path('app_packages_toggle', {'slug':  'SLUG'}) }}">
                         {% for package in packages %}
-                            <option value="{{ package.slug }}">{{ package.title }}</option>
+                            <option value="{{ package.slug }}">{{ package.name }}</option>
                         {% endfor %}
                     </select>
                 </p>
                 <div class="text-right">
-                    <a href="#" id="delete-package-button" class="no-decoration text-danger" data-delete-url="{{ path('app_packages_delete', {'slug':  'SLUG'}) }}"><i class="fas fa-fw fa-trash"></i> Delete</a>
+                    <a href="#" id="update-package-button" class="no-decoration text-secondary" data-update-url="{{ path('app_packages_update', {'slug':  'SLUG'}) }}"><i class="far fa-edit"></i> Edit</a>
+                    <a href="#" id="delete-package-button" class="no-decoration text-danger ml-2" data-delete-url="{{ path('app_packages_delete', {'slug':  'SLUG'}) }}"><i class="fas fa-fw fa-trash"></i> Delete</a>
                 </div>
             </div>
         </div>
@@ -82,7 +83,7 @@
                     </div>
                 </header>
                 <main class="modal__content">
-                    <form id="package-form" action="{{ path('app_packages_create') }}" method="post">
+                    <form id="package-form" action="#" method="post" data-task="add-package">
                         <div class="form-group row">
                             <label for="form-package-name" class="col-sm-2 col-form-label">Name</label>
                             <div class="col-sm-10">
