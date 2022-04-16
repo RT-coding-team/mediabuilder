@@ -17,6 +17,7 @@ use Bolt\Repository\RelationRepository;
 use Bolt\Repository\TaxonomyRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Webmozart\PathUtil\Path;
@@ -131,7 +132,13 @@ class ExportCommand extends Command
      */
     protected function configure(): void
     {
-        $this->setDescription('Package the content to be used with the MM Interface.');
+        $this
+            ->setDescription('Package the content to be used with the MM Interface.')
+            ->addArgument(
+                'slug',
+                InputArgument::OPTIONAL,
+                'The slug of the package to export. If it is not supplied, all will be exported.'
+            );
     }
 
     /**
@@ -145,6 +152,7 @@ class ExportCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         set_time_limit(0);
+        $slug = $input->getArgument('slug');
         $this->fileLogger = new FileLogger(
             $output,
             Path::join($this->directories['exports'], 'export_progress.json')
@@ -155,8 +163,21 @@ class ExportCommand extends Command
             $this->config,
             $this->fileLogger
         );
+        // The currently available packages in the database
+        if ($slug) {
+            $package = $this->packagesStore->findBySlug($slug);
+            // We put in array to be iterated in build process
+            $available = [$package];
+        } else {
+            $available = $this->packagesStore->findAll();
+        }
+        if (empty($available)) {
+            $this->fileLogger->logError('No packages found!');
+
+            return Command::FAILURE;
+        }
         try {
-            $packages = $this->buildPackages();
+            $packages = $this->buildPackages($available);
             $this->exportPackages($packages);
             $this->fileLogger->logFinished('Content Exporter');
 
@@ -169,19 +190,21 @@ class ExportCommand extends Command
     }
 
     /**
-     * Build the packages to send to the exporter
+     * Build the packages (its structure) with all its collections and singles into an array
+     * so we can send it to the export method. We skip packages that do not have collections
+     * or singles since they will have no files.
+     * @param array $available An array of all the available packages from the database
      *
      * @return array The array of packages
      */
-    private function buildPackages(): array
+    private function buildPackages($available): array
     {
         $results = [];
         $supported = $this->config->get('exporter/supported_languages');
         if (! $supported) {
             $supported = Constants::DEFAULT_SUPPORTED_LANGUAGES;
         }
-        $packages = $this->packagesStore->findAll();
-        foreach ($packages as $package) {
+        foreach ($available as $package) {
             foreach ($supported as $lang) {
                 $localeCode = $lang['bolt_locale_code'];
                 $collections = $this->collectionsStore->findAll($localeCode);
@@ -209,9 +232,9 @@ class ExportCommand extends Command
     }
 
     /**
-     * Export the packages
+     * Package up the package files and create zip archives.
      *
-     * @param array $packages The packages to export
+     * @param array $packages All the packages (structure) with collections and singles to export
      */
     private function exportPackages(array $packages): void
     {
