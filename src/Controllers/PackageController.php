@@ -85,7 +85,7 @@ class PackageController extends TwigAwareController
         $data = json_decode($request->getContent());
         $errors = [];
         if (! isset($data->name) || empty($data->name)) {
-            $errors[] = 'Missing the package slug.';
+            $errors[] = 'Missing the package name.';
         }
         if (! empty($errors)) {
             $response = new Response(json_encode([
@@ -166,7 +166,7 @@ class PackageController extends TwigAwareController
      *   },
      * };
      */
-    public function togglePackage(Request $request, string $slug): Response
+    public function toggle(Request $request, string $slug): Response
     {
         if (! $this->authorizationChecker->isGranted(Constants::PACKAGE_MANAGER_REQUIRED_PERMISSION)) {
             $response = new Response(json_encode([]), 403);
@@ -230,6 +230,45 @@ class PackageController extends TwigAwareController
         $response = new Response(json_encode([
             'state' => $state,
         ]), 200);
+        $response->headers->set('Content-Type', 'application/json');
+
+        return $response;
+    }
+
+    /**
+     * @Route("/packages/{slug}", name="app_packages_update", methods={"PATCH"})
+     *
+     * Update a package
+     */
+    public function update(Request $request, string $slug): Response
+    {
+        if (! $this->authorizationChecker->isGranted(Constants::PACKAGE_MANAGER_REQUIRED_PERMISSION)) {
+            $response = new Response(json_encode([]), 403);
+            $response->headers->set('Content-Type', 'application/json');
+
+            return $response;
+        }
+        $data = json_decode($request->getContent());
+        if (empty($data)) {
+            $response = new Response(json_encode([
+                'errors' => ['You must send the data to update.'],
+            ]), 400);
+            $response->headers->set('Content-Type', 'application/json');
+
+            return $response;
+        }
+        $package = $this->packagesStore->update($slug, $data);
+        if (! $package) {
+            $response = new Response(json_encode([
+                'errors' => 'Unable to update the package.',
+            ]), 500);
+            $response->headers->set('Content-Type', 'application/json');
+
+            return $response;
+        }
+        $response = new Response(json_encode([
+            'package' => $package,
+        ]), 201);
         $response->headers->set('Content-Type', 'application/json');
 
         return $response;

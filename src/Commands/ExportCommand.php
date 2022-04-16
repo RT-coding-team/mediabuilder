@@ -98,6 +98,7 @@ class ExportCommand extends Command
         CollectionsStore $collectionsStore,
         ContentRepository $contentRepository,
         EntityManagerInterface $entityManager,
+        PackagesStore $packagesStore,
         RelationRepository $relationRepository,
         SinglesStore $singlesStore,
         TaxonomyRepository $taxonomyRepository
@@ -122,7 +123,7 @@ class ExportCommand extends Command
         $this->collectionsStore->siteUrl = $siteUrl;
         $this->singlesStore = $singlesStore;
         $this->collectionsStore->siteUrl = $siteUrl;
-        $this->packagesStore = new PackagesStore($taxonomyRepository);
+        $this->packagesStore = $packagesStore;
     }
 
     /**
@@ -215,11 +216,11 @@ class ExportCommand extends Command
     private function exportPackages(array $packages): void
     {
         foreach ($packages as $package) {
-            $this->fileLogger->log('Creating package: '.$package->title);
+            $this->fileLogger->log('Creating package: '.$package->name);
             $this->packageExporter->export($package, false);
             // Create a slim version
             $this->packageExporter->export($package, true);
-            $this->fileLogger->log('Completed package: '.$package->title);
+            $this->fileLogger->log('Completed package: '.$package->name);
         }
     }
 }

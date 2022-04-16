@@ -163,7 +163,7 @@ class PackageExporter
         bool $isSlim = false
     ): void {
         $this->isSlim = $isSlim;
-        $this->start($package->title, $package->slug);
+        $this->start($package->name, $package->slug);
         foreach ($this->supportedLanguages as $lang) {
             if (! $package->hasContentForLocale($lang['bolt_locale_code'])) {
                 // We have no content for this locale so move along.
