@@ -117,7 +117,7 @@ class PackagesStore
     /**
      * Find a package by its' slug
      *
-     * @param string $slug The slug
+     * @param string $slug The slug of the package to find
      *
      * @return Package The package or null if it does not exist
      */
@@ -130,6 +130,46 @@ class PackagesStore
         if (0 === \count($query)) {
             return null;
         }
+
+        return new Package(
+            $query[0]->getName(),
+            $query[0]->getSlug()
+        );
+    }
+
+    /**
+     * Update a package
+     *
+     * @param string $slug The slug of the package to udate
+     * @param object $data A standard object of data to update
+     *
+     * @return Package The package or null if it does not exist
+     */
+    public function update(string $slug, object $data): ?Package
+    {
+        $package = $this->findBySlug($slug);
+        if (! $package) {
+            return null;
+        }
+        if (empty($data)) {
+            return $package;
+        }
+        if (isset($data->name) && ($data->name === $package->name)) {
+            return $package;
+        }
+        $query = $this->taxonomyRepository->findBy([
+            'type' => 'packages',
+            'slug' => $slug,
+        ]);
+        if (0 === \count($query)) {
+            return null;
+        }
+        if (isset($data->name)) {
+            $slug = Str::slug($data->name);
+            $query[0]->setName($data->name)->setSlug($slug);
+        }
+        $this->entityManager->persist($query[0]);
+        $this->entityManager->flush();
 
         return new Package(
             $query[0]->getName(),
