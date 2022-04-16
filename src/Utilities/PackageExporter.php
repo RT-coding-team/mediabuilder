@@ -390,7 +390,14 @@ class PackageExporter
             \ZipArchive::CREATE,
             'content'
         );
-        $this->log('Archive has been zipped up. Doing some clean up.');
+        if (file_exists($this->directories['export_root'].'.zip')) {
+            if ($this->fileLogger) {
+                $this->fileLogger->increaseCounter();
+            }
+            $this->log('Archive has been zipped up. Doing some clean up.');
+        } else {
+            $this->logError('For some reason the zip was not created: '.$this->directories['export_root'].'.zip');
+        }
         //Remove our export directory
         foreach ($this->providedLocales as $locale) {
             $this->removeDirectory(Path::join($this->directories['export_root'], $locale));
