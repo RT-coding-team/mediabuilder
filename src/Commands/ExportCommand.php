@@ -9,9 +9,9 @@ use App\Stores\CollectionsStore;
 use App\Stores\PackagesStore;
 use App\Stores\SinglesStore;
 use App\Utilities\Config;
+use App\Utilities\ExportMedia;
 use App\Utilities\FileLogger;
 use App\Utilities\PackageExporter;
-use Bolt\Configuration\Config as BoltConfig;
 use Bolt\Repository\ContentRepository;
 use Bolt\Repository\RelationRepository;
 use Bolt\Repository\TaxonomyRepository;
@@ -53,17 +53,18 @@ class ExportCommand extends Command
      *
      * @var array
      */
-    private $directories = [
+    private $paths = [
         'exports' => '',
+        'exportRelative' => '',
         'public' => '',
     ];
 
     /**
-     * The content exporter
+     * Our ExportMedia utility
      *
-     * @var PackageExporter
+     * @var ExportMedia
      */
-    private $packageExporter = null;
+    private $exportMedia = null;
 
     /**
      * The file logger for tracking progress
@@ -71,6 +72,13 @@ class ExportCommand extends Command
      * @var FileLogger
      */
     private $fileLogger = null;
+
+    /**
+     * The content exporter
+     *
+     * @var PackageExporter
+     */
+    private $packageExporter = null;
 
     /**
      * Our packages store
@@ -89,16 +97,20 @@ class ExportCommand extends Command
     /**
      * Build the class
      *
-     * @param BoltConfig $boltConfig Bolt's configuration class
+     * @param CollectionsStore $collectionsStore Our collections store
      * @param ContentRepository $contentRepository The content repository
+     * @param EntityManagerInterface $entityManager Symfony's entity manager
+     * @param ExportMedia $exportMedia Our Export Media utility
+     * @param PackagesStore $packagesStore Our pakages store
      * @param RelationRepository $relationRepository The relation repository
+     * @param SinglesStore $singlesStore Our Singles store
      * @param TaxonomyRepository $taxonomyRepository The taxonomy repository
      */
     public function __construct(
-        BoltConfig $boltConfig,
         CollectionsStore $collectionsStore,
         ContentRepository $contentRepository,
         EntityManagerInterface $entityManager,
+        ExportMedia $exportMedia,
         PackagesStore $packagesStore,
         RelationRepository $relationRepository,
         SinglesStore $singlesStore,
@@ -107,6 +119,7 @@ class ExportCommand extends Command
         parent::__construct();
 
         $this->config = new Config();
+        $this->exportMedia = $exportMedia;
         $siteUrl = $this->config->get('exporter/site_url');
         if (! empty($siteUrl)) {
             $siteUrl = rtrim($siteUrl, '/').'/';
@@ -115,10 +128,11 @@ class ExportCommand extends Command
         if (! $publicPath) {
             $publicPath = Constants::EXPORTS_PUBLIC_PATH;
         }
-        $this->directories['public'] = Path::canonicalize(\dirname(__DIR__, 2).'/public/');
-        $this->directories['exports'] = Path::canonicalize($this->directories['public'].$publicPath);
-        if (! file_exists($this->directories['exports'])) {
-            mkdir($this->directories['exports'], 0777, true);
+        $this->paths['public'] = Path::canonicalize(\dirname(__DIR__, 2).'/public/');
+        $this->paths['exportRelative'] = $publicPath;
+        $this->paths['exports'] = Path::canonicalize($this->paths['public'].$publicPath);
+        if (! file_exists($this->paths['exports'])) {
+            mkdir($this->paths['exports'], 0777, true);
         }
         $this->collectionsStore = $collectionsStore;
         $this->collectionsStore->siteUrl = $siteUrl;
@@ -155,11 +169,11 @@ class ExportCommand extends Command
         $slug = $input->getArgument('slug');
         $this->fileLogger = new FileLogger(
             $output,
-            Path::join($this->directories['exports'], 'export_progress.json')
+            Path::join($this->paths['exports'], 'export_progress.json')
         );
         $this->packageExporter = new PackageExporter(
-            $this->directories['public'],
-            $this->directories['exports'],
+            $this->paths['public'],
+            $this->paths['exports'],
             $this->config,
             $this->fileLogger
         );
@@ -169,6 +183,7 @@ class ExportCommand extends Command
             // We put in array to be iterated in build process
             $available = [$package];
         } else {
+            $slug = '';
             $available = $this->packagesStore->findAll();
         }
         if (empty($available)) {
@@ -176,6 +191,7 @@ class ExportCommand extends Command
 
             return Command::FAILURE;
         }
+        $this->removeOldExports($slug);
         try {
             $packages = $this->buildPackages($available);
             $this->exportPackages($packages);
@@ -245,6 +261,38 @@ class ExportCommand extends Command
             // Create a slim version
             $this->packageExporter->export($package, true);
             $this->fileLogger->log('Completed package: '.$package->name);
+        }
+    }
+
+    /**
+     * Remove all the old exports for a specific slug. Use an empty string to remove all exports.
+     *
+     * @param string $slug The slug of the exports to remove. (default: '' ie all exports)
+     */
+    private function removeOldExports(string $slug = ''): void
+    {
+        $dateFormat = $this->config->get('exporter/file_date_suffix');
+        if (! $dateFormat) {
+            $dateFormat = Constants::DEFAULT_FILE_DATE_SUFFIX;
+        }
+
+        $media = $this->exportMedia->get($this->paths['exports'], $this->paths['exportRelative'], $dateFormat);
+        if (empty($slug)) {
+            foreach ($media as $files) {
+                foreach ($files as $fileInfo) {
+                    $absolutePath = Path::canonicalize($this->paths['public'].$fileInfo['filepath']);
+                    unlink($absolutePath);
+                }
+            }
+
+            return;
+        }
+        if (! \array_key_exists($slug, $media)) {
+            return;
+        }
+        foreach ($media[$slug] as $fileInfo) {
+            $absolutePath = Path::canonicalize($this->paths['public'].$fileInfo['filepath']);
+            unlink($absolutePath);
         }
     }
 }

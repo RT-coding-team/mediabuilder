@@ -7,6 +7,7 @@ namespace App\Controllers;
 use App\Constants;
 use App\Stores\PackagesStore;
 use App\Utilities\Config;
+use App\Utilities\ExportMedia;
 use Bolt\Controller\Backend\BackendZoneInterface;
 use Bolt\Controller\TwigAwareController;
 use Symfony\Component\HttpFoundation\Request;
@@ -46,6 +47,13 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
     private $authorizationChecker = null;
 
     /**
+     * Our ExportMedia utility
+     *
+     * @var ExportMedia
+     */
+    private $exportMedia = null;
+
+    /**
      * Our package store
      *
      * @var PackagesStore
@@ -56,12 +64,16 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
      * Build the class
      *
      * @param AuthorizationCheckerInterface $authorizationChecker permission checker
+     * @param ExportMedia $exportMedia The export media utility
+     * @param PackagesStore $packagesStore Our packages store
      */
     public function __construct(
         AuthorizationCheckerInterface $authorizationChecker,
+        ExportMedia $exportMedia,
         PackagesStore $packagesStore
     ) {
         $this->exportConfig = new Config();
+        $this->exportMedia = $exportMedia;
         $this->authorizationChecker = $authorizationChecker;
         $this->packagesStore = $packagesStore;
         $publicPath = $this->exportConfig->get('exporter/public_path');
@@ -174,50 +186,12 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
      */
     private function getMedia(): array
     {
-        $files = [];
         $dateFormat = $this->exportConfig->get('exporter/file_date_suffix');
         if (! $dateFormat) {
             $dateFormat = Constants::DEFAULT_FILE_DATE_SUFFIX;
         }
-        foreach (glob($this->paths['export'].'/*.zip') as $filename) {
-            $pieces = explode('_', basename($filename, '.zip'));
-            $isSlim = false;
-            $slug = '';
-            if (2 === \count($pieces)) {
-                $slug = $pieces[0];
-                $package = $this->packagesStore->findBySlug($slug);
-                $date = \DateTime::createFromFormat($dateFormat, $pieces[1]);
-            } elseif (3 === \count($pieces)) {
-                $slug = $pieces[1];
-                $package = $this->packagesStore->findBySlug($slug);
-                $date = \DateTime::createFromFormat($dateFormat, $pieces[2]);
-                $isSlim = true;
-            } else {
-                continue;
-            }
-            $packageName = $package ? $package->name : '';
-            if (! \array_key_exists($slug, $files)) {
-                $files[$slug] = [];
-            }
-            $files[$slug][] = [
-                'date' => $date->format('M j, Y g:i A'),
-                'filename' => basename($filename),
-                'filepath' => Path::join($this->paths['exportRelative'], basename($filename)),
-                'is_slim' => $isSlim,
-                'package' => $packageName,
-                'timestamp' => $date->getTimestamp(),
-            ];
-        }
-        $sorted = [];
-        foreach ($files as $key => $val) {
-            uasort($val, function ($a, $b) {
-                return $b['timestamp'] <=> $a['timestamp'];
-            });
-            $sorted[$key] = $val;
-        }
-        ksort($sorted);
 
-        return $sorted;
+        return $this->exportMedia->get($this->paths['export'], $this->paths['exportRelative'], $dateFormat);
     }
 
     /**
