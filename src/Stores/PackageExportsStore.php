@@ -161,17 +161,18 @@ class PackageExportsStore
         $pieces = explode('_', basename($filename, '.zip'));
         $isSlim = false;
         if (2 === \count($pieces)) {
-            $package = $this->packagesStore->findBySlug($pieces[0]);
+            $slug = $pieces[0];
             $exportedOn = \DateTime::createFromFormat($this->fileDateFormat, $pieces[1]);
         } elseif (3 === \count($pieces)) {
-            $package = $this->packagesStore->findBySlug($pieces[1]);
+            $slug = $pieces[1];
             $exportedOn = \DateTime::createFromFormat($this->fileDateFormat, $pieces[2]);
             $isSlim = true;
         } else {
             return null;
         }
+        $package = $this->packagesStore->findBySlug($slug);
         if (empty($package)) {
-            $package = new Package('Missing Package', 'missing-package');
+            $package = new Package($slug, $slug);
         }
 
         return new PackageExport(

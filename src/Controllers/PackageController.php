@@ -161,9 +161,8 @@ class PackageController extends TwigAwareController
 
             return $response;
         }
-        // We need to clear files first, or they will get marked as missing package
-        $this->packageExportsStore->destroy($slug);
         $success = $this->packagesStore->destroy($slug);
+        $this->packageExportsStore->destroy($slug);
         if (! $success) {
             $response = new Response(json_encode([
                 'errors' => 'Unable to destroy the package.',
