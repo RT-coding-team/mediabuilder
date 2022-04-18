@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Constants;
+use App\Stores\PackageExportsStore;
 use App\Stores\PackagesStore;
 use App\Utilities\Config;
-use App\Utilities\ExportMedia;
 use Bolt\Controller\Backend\BackendZoneInterface;
 use Bolt\Controller\TwigAwareController;
 use Symfony\Component\HttpFoundation\Request;
@@ -47,13 +47,6 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
     private $authorizationChecker = null;
 
     /**
-     * Our ExportMedia utility
-     *
-     * @var ExportMedia
-     */
-    private $exportMedia = null;
-
-    /**
      * Our package store
      *
      * @var PackagesStore
@@ -64,16 +57,13 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
      * Build the class
      *
      * @param AuthorizationCheckerInterface $authorizationChecker permission checker
-     * @param ExportMedia $exportMedia The export media utility
      * @param PackagesStore $packagesStore Our packages store
      */
     public function __construct(
         AuthorizationCheckerInterface $authorizationChecker,
-        ExportMedia $exportMedia,
         PackagesStore $packagesStore
     ) {
         $this->exportConfig = new Config();
-        $this->exportMedia = $exportMedia;
         $this->authorizationChecker = $authorizationChecker;
         $this->packagesStore = $packagesStore;
         $publicPath = $this->exportConfig->get('exporter/public_path');
@@ -190,8 +180,23 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
         if (! $dateFormat) {
             $dateFormat = Constants::DEFAULT_FILE_DATE_FORMAT;
         }
+        $store = new PackageExportsStore(
+            $this->paths['export'],
+            $dateFormat,
+            $this->packagesStore,
+            $this->paths['exportRelative']
+        );
+        $media = $store->findAll();
+        usort($media, function ($a, $b) {
+            $compare = strcmp($a->package->name, $b->package->name);
+            if (0 === $compare) {
+                return $a->isSlim - $b->isSlim;
+            }
 
-        return $this->exportMedia->get($this->paths['export'], $this->paths['exportRelative'], $dateFormat);
+            return $compare;
+        });
+
+        return $media;
     }
 
     /**

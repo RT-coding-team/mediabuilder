@@ -192,7 +192,6 @@ class PackageExporter
         string $packageSlug
     ): void {
         $this->log('Export started!');
-        $today = new \DateTime();
         $this->mainData = [
             'itemName' => $packageName,
             'content' => [],
