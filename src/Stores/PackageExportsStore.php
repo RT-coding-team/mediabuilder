@@ -53,6 +53,38 @@ class PackageExportsStore
     }
 
     /**
+     * Delete all files associated to a slug
+     *
+     * @param string $slug The package slug
+     *
+     * @return bool Did it remove the files?
+     */
+    public function deleteBySlug(string $slug): bool
+    {
+        $exports = $this->findBySlug($slug);
+        foreach ($exports as $export) {
+            unlink($export->absolutePath);
+        }
+
+        return empty($this->findBySlug($slug));
+    }
+
+    /**
+     * Delete all the exports
+     *
+     * @return bool Did it remove all the files?
+     */
+    public function deleteAll(): bool
+    {
+        $exports = $this->findAll();
+        foreach ($exports as $export) {
+            unlink($export->absolutePath);
+        }
+
+        return empty($this->findAll());
+    }
+
+    /**
      * Find all packaged exports
      *
      * @return array The packaged exports
@@ -64,25 +96,32 @@ class PackageExportsStore
         }
         $exports = [];
         foreach (glob($this->absoluteDir.'/*.zip') as $filename) {
-            $pieces = explode('_', basename($filename, '.zip'));
-            $isSlim = false;
-            if (2 === \count($pieces)) {
-                $package = $this->packagesStore->findBySlug($pieces[0]);
-                $exportedOn = \DateTime::createFromFormat($this->fileDateFormat, $pieces[1]);
-            } elseif (3 === \count($pieces)) {
-                $package = $this->packagesStore->findBySlug($pieces[1]);
-                $exportedOn = \DateTime::createFromFormat($this->fileDateFormat, $pieces[2]);
-                $isSlim = true;
-            } else {
-                continue;
+            $export = $this->buildExport($filename);
+            if ($export) {
+                $exports[] = $export;
             }
-            $exports[] = new PackageExport(
-                $filename,
-                $exportedOn,
-                $isSlim,
-                $package,
-                Path::join($this->relativeToPublicDir, basename($filename))
-            );
+        }
+
+        return $exports;
+    }
+
+    /**
+     * Find based on the provided slug
+     *
+     * @param string $slug The slug of the package
+     *
+     * @return array The packaged exports
+     */
+    public function findBySlug(string $slug): array
+    {
+        if (! file_exists($this->absoluteDir)) {
+            return [];
+        }
+        $exports = [];
+        foreach ($this->findAll() as $export) {
+            if ($export->package->slug === $slug) {
+                $exports[] = $export;
+            }
         }
 
         return $exports;
@@ -107,5 +146,36 @@ class PackageExportsStore
         $filename .= $packageSlug.'_'.$today->format($fileDateFormat).'.zip';
 
         return $filename;
+    }
+
+    /**
+     * Build the package export
+     *
+     * @param string $filename The absolute path to the file
+     *
+     * @return PackageExport The export package
+     */
+    private function buildExport(string $filename): ?PackageExport
+    {
+        $pieces = explode('_', basename($filename, '.zip'));
+        $isSlim = false;
+        if (2 === \count($pieces)) {
+            $package = $this->packagesStore->findBySlug($pieces[0]);
+            $exportedOn = \DateTime::createFromFormat($this->fileDateFormat, $pieces[1]);
+        } elseif (3 === \count($pieces)) {
+            $package = $this->packagesStore->findBySlug($pieces[1]);
+            $exportedOn = \DateTime::createFromFormat($this->fileDateFormat, $pieces[2]);
+            $isSlim = true;
+        } else {
+            return null;
+        }
+
+        return new PackageExport(
+            $filename,
+            $exportedOn,
+            $isSlim,
+            $package,
+            Path::join($this->relativeToPublicDir, basename($filename))
+        );
     }
 }

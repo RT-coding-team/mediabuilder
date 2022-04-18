@@ -6,10 +6,10 @@ namespace App\Commands;
 
 use App\Constants;
 use App\Stores\CollectionsStore;
+use App\Stores\PackageExportsStore;
 use App\Stores\PackagesStore;
 use App\Stores\SinglesStore;
 use App\Utilities\Config;
-use App\Utilities\ExportMedia;
 use App\Utilities\FileLogger;
 use App\Utilities\PackageExporter;
 use Bolt\Repository\ContentRepository;
@@ -60,13 +60,6 @@ class ExportCommand extends Command
     ];
 
     /**
-     * Our ExportMedia utility
-     *
-     * @var ExportMedia
-     */
-    private $exportMedia = null;
-
-    /**
      * The file logger for tracking progress
      *
      * @var FileLogger
@@ -100,7 +93,6 @@ class ExportCommand extends Command
      * @param CollectionsStore $collectionsStore Our collections store
      * @param ContentRepository $contentRepository The content repository
      * @param EntityManagerInterface $entityManager Symfony's entity manager
-     * @param ExportMedia $exportMedia Our Export Media utility
      * @param PackagesStore $packagesStore Our pakages store
      * @param RelationRepository $relationRepository The relation repository
      * @param SinglesStore $singlesStore Our Singles store
@@ -110,7 +102,6 @@ class ExportCommand extends Command
         CollectionsStore $collectionsStore,
         ContentRepository $contentRepository,
         EntityManagerInterface $entityManager,
-        ExportMedia $exportMedia,
         PackagesStore $packagesStore,
         RelationRepository $relationRepository,
         SinglesStore $singlesStore,
@@ -119,7 +110,6 @@ class ExportCommand extends Command
         parent::__construct();
 
         $this->config = new Config();
-        $this->exportMedia = $exportMedia;
         $siteUrl = $this->config->get('exporter/site_url');
         if (! empty($siteUrl)) {
             $siteUrl = rtrim($siteUrl, '/').'/';
@@ -192,6 +182,7 @@ class ExportCommand extends Command
             return Command::FAILURE;
         }
         $this->removeOldExports($slug);
+
         try {
             $packages = $this->buildPackages($available);
             $this->exportPackages($packages);
@@ -275,24 +266,16 @@ class ExportCommand extends Command
         if (! $dateFormat) {
             $dateFormat = Constants::DEFAULT_FILE_DATE_FORMAT;
         }
-
-        $media = $this->exportMedia->get($this->paths['exports'], $this->paths['exportRelative'], $dateFormat);
+        $store = new PackageExportsStore(
+            $this->paths['exports'],
+            $dateFormat,
+            $this->packagesStore,
+            $this->paths['exportRelative']
+        );
         if (empty($slug)) {
-            foreach ($media as $files) {
-                foreach ($files as $fileInfo) {
-                    $absolutePath = Path::canonicalize($this->paths['public'].$fileInfo['filepath']);
-                    unlink($absolutePath);
-                }
-            }
-
-            return;
-        }
-        if (! \array_key_exists($slug, $media)) {
-            return;
-        }
-        foreach ($media[$slug] as $fileInfo) {
-            $absolutePath = Path::canonicalize($this->paths['public'].$fileInfo['filepath']);
-            unlink($absolutePath);
+            $store->deleteAll();
+        } else {
+            $store->deleteBySlug($slug);
         }
     }
 }
