@@ -20,6 +20,13 @@ class FileLogger
     public $data = [];
 
     /**
+     * A counter to be used in logging
+     *
+     * @var int
+     */
+    private $counter = 0;
+
+    /**
      * The path including the filename to store the log data
      *
      * @var string
@@ -51,6 +58,14 @@ class FileLogger
     }
 
     /**
+     * Increment the counter by one
+     */
+    public function increaseCounter(): void
+    {
+        ++$this->counter;
+    }
+
+    /**
      * Log a message that has no error code
      *
      * @param string $message The message to log
@@ -60,6 +75,7 @@ class FileLogger
         $now = new \DateTime();
         $content = [
             'completed' => false,
+            'counter' => $this->counter,
             'isError' => false,
             'message' => $message,
             'timestamp' => $now->getTimestamp(),
@@ -81,6 +97,7 @@ class FileLogger
         $now = new \DateTime();
         $content = [
             'completed' => true,
+            'counter' => $this->counter,
             'isError' => false,
             'message' => $processName.' has completed!',
             'timestamp' => $now->getTimestamp(),
@@ -102,6 +119,7 @@ class FileLogger
         $now = new \DateTime();
         $content = [
             'completed' => false,
+            'counter' => $this->counter,
             'isError' => true,
             'message' => $message,
             'timestamp' => $now->getTimestamp(),
@@ -111,6 +129,22 @@ class FileLogger
         $this->output->writeln(
             $content['timestamp'].' : '.$message.' [ERROR]'
         );
+    }
+
+    /**
+     * Reduce the counter by one
+     */
+    public function reduceCounter(): void
+    {
+        --$this->counter;
+    }
+
+    /**
+     * Reset the counter
+     */
+    public function resetCounter(): void
+    {
+        $this->counter = 0;
     }
 
     /**

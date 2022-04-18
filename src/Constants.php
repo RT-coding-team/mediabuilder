@@ -18,7 +18,7 @@ class Constants
      *
      * @see https://www.php.net/manual/en/datetime.format.php
      */
-    public const DEFAULT_FILE_DATE_SUFFIX = 'm-d-Y-H-i';
+    public const DEFAULT_FILE_DATE_FORMAT = 'm-d-Y-H-i';
 
     /**
      * The default supported languages
