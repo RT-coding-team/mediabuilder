@@ -56,10 +56,16 @@ function startExport() {
   if (currentlyProcessing) {
     return false;
   }
-  setIsProcessing(true);
   var $trigger = $('#export-starter');
   var $icon = $trigger.children('i').first();
-  $.get($trigger.attr('href'))
+  var package = $('#package-selector').val();
+  var url = $trigger.attr('href');
+  if (package !== 'all') {
+    // We remove last slash if exists
+    url = url.replace(/\/$/, '')+'/'+package;
+  }
+  setIsProcessing(true);
+  $.get(url)
     .done(function(data, textStatus, xhr) {
       if (xhr.status >= 200 && xhr.status < 400) {
         notify('The export process has started!', true);
@@ -86,18 +92,20 @@ function startExport() {
  * @return {void}
  */
 function statusUpdate() {
-  console.log('statusUpdate');
   $.get('/files/exports/export_progress.json')
     .done(function(data, textStatus, xhr) {
       if (xhr.status >= 200 && xhr.status < 400) {
         var latest = data[data.length - 1];
-        console.log(latest);
         if (latest.completed) {
-          notify('The export process has completed! The page will refresh.', true);
           setIsProcessing(false);
-          setTimeout(function() {
-            location.reload();
-          }, 2000);
+          if (latest.counter > 0) {
+            notify('The export process has completed! The page will refresh.', true);
+            setTimeout(function() {
+              location.reload();
+            }, 2000);
+          } else {
+            notify('No packages were created.  Are you sure you added collections or singles to this package?', false);
+          }
         } else if (latest.isError) {
           notify(latest.message, false);
           setIsProcessing(false);

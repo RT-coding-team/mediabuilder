@@ -6,17 +6,18 @@ namespace App\Commands;
 
 use App\Constants;
 use App\Stores\CollectionsStore;
+use App\Stores\PackageExportsStore;
 use App\Stores\PackagesStore;
 use App\Stores\SinglesStore;
 use App\Utilities\Config;
 use App\Utilities\FileLogger;
 use App\Utilities\PackageExporter;
-use Bolt\Configuration\Config as BoltConfig;
 use Bolt\Repository\ContentRepository;
 use Bolt\Repository\RelationRepository;
 use Bolt\Repository\TaxonomyRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Webmozart\PathUtil\Path;
@@ -52,17 +53,11 @@ class ExportCommand extends Command
      *
      * @var array
      */
-    private $directories = [
+    private $paths = [
         'exports' => '',
+        'exportRelative' => '',
         'public' => '',
     ];
-
-    /**
-     * The content exporter
-     *
-     * @var PackageExporter
-     */
-    private $packageExporter = null;
 
     /**
      * The file logger for tracking progress
@@ -70,6 +65,13 @@ class ExportCommand extends Command
      * @var FileLogger
      */
     private $fileLogger = null;
+
+    /**
+     * The content exporter
+     *
+     * @var PackageExporter
+     */
+    private $packageExporter = null;
 
     /**
      * Our packages store
@@ -88,13 +90,15 @@ class ExportCommand extends Command
     /**
      * Build the class
      *
-     * @param BoltConfig $boltConfig Bolt's configuration class
+     * @param CollectionsStore $collectionsStore Our collections store
      * @param ContentRepository $contentRepository The content repository
+     * @param EntityManagerInterface $entityManager Symfony's entity manager
+     * @param PackagesStore $packagesStore Our pakages store
      * @param RelationRepository $relationRepository The relation repository
+     * @param SinglesStore $singlesStore Our Singles store
      * @param TaxonomyRepository $taxonomyRepository The taxonomy repository
      */
     public function __construct(
-        BoltConfig $boltConfig,
         CollectionsStore $collectionsStore,
         ContentRepository $contentRepository,
         EntityManagerInterface $entityManager,
@@ -114,10 +118,11 @@ class ExportCommand extends Command
         if (! $publicPath) {
             $publicPath = Constants::EXPORTS_PUBLIC_PATH;
         }
-        $this->directories['public'] = Path::canonicalize(\dirname(__DIR__, 2).'/public/');
-        $this->directories['exports'] = Path::canonicalize($this->directories['public'].$publicPath);
-        if (! file_exists($this->directories['exports'])) {
-            mkdir($this->directories['exports'], 0777, true);
+        $this->paths['public'] = Path::canonicalize(\dirname(__DIR__, 2).'/public/');
+        $this->paths['exportRelative'] = $publicPath;
+        $this->paths['exports'] = Path::canonicalize($this->paths['public'].$publicPath);
+        if (! file_exists($this->paths['exports'])) {
+            mkdir($this->paths['exports'], 0777, true);
         }
         $this->collectionsStore = $collectionsStore;
         $this->collectionsStore->siteUrl = $siteUrl;
@@ -131,7 +136,13 @@ class ExportCommand extends Command
      */
     protected function configure(): void
     {
-        $this->setDescription('Package the content to be used with the MM Interface.');
+        $this
+            ->setDescription('Package the content to be used with the MM Interface.')
+            ->addArgument(
+                'slug',
+                InputArgument::OPTIONAL,
+                'The slug of the package to export. If it is not supplied, all will be exported.'
+            );
     }
 
     /**
@@ -145,18 +156,35 @@ class ExportCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         set_time_limit(0);
+        $slug = $input->getArgument('slug');
         $this->fileLogger = new FileLogger(
             $output,
-            Path::join($this->directories['exports'], 'export_progress.json')
+            Path::join($this->paths['exports'], 'export_progress.json')
         );
         $this->packageExporter = new PackageExporter(
-            $this->directories['public'],
-            $this->directories['exports'],
+            $this->paths['public'],
+            $this->paths['exports'],
             $this->config,
             $this->fileLogger
         );
+        // The currently available packages in the database
+        if ($slug) {
+            $package = $this->packagesStore->findBySlug($slug);
+            // We put in array to be iterated in build process
+            $available = [$package];
+        } else {
+            $slug = '';
+            $available = $this->packagesStore->findAll();
+        }
+        if (empty($available)) {
+            $this->fileLogger->logError('No packages found!');
+
+            return Command::FAILURE;
+        }
+        $this->removeOldExports($slug);
+
         try {
-            $packages = $this->buildPackages();
+            $packages = $this->buildPackages($available);
             $this->exportPackages($packages);
             $this->fileLogger->logFinished('Content Exporter');
 
@@ -169,19 +197,22 @@ class ExportCommand extends Command
     }
 
     /**
-     * Build the packages to send to the exporter
+     * Build the packages (its structure) with all its collections and singles into an array
+     * so we can send it to the export method. We skip packages that do not have collections
+     * or singles since they will have no files.
+     *
+     * @param array $available An array of all the available packages from the database
      *
      * @return array The array of packages
      */
-    private function buildPackages(): array
+    private function buildPackages($available): array
     {
         $results = [];
         $supported = $this->config->get('exporter/supported_languages');
         if (! $supported) {
             $supported = Constants::DEFAULT_SUPPORTED_LANGUAGES;
         }
-        $packages = $this->packagesStore->findAll();
-        foreach ($packages as $package) {
+        foreach ($available as $package) {
             foreach ($supported as $lang) {
                 $localeCode = $lang['bolt_locale_code'];
                 $collections = $this->collectionsStore->findAll($localeCode);
@@ -209,9 +240,9 @@ class ExportCommand extends Command
     }
 
     /**
-     * Export the packages
+     * Package up the package files and create zip archives.
      *
-     * @param array $packages The packages to export
+     * @param array $packages All the packages (structure) with collections and singles to export
      */
     private function exportPackages(array $packages): void
     {
@@ -221,6 +252,30 @@ class ExportCommand extends Command
             // Create a slim version
             $this->packageExporter->export($package, true);
             $this->fileLogger->log('Completed package: '.$package->name);
+        }
+    }
+
+    /**
+     * Remove all the old exports for a specific slug. Use an empty string to remove all exports.
+     *
+     * @param string $slug The slug of the exports to remove. (default: '' ie all exports)
+     */
+    private function removeOldExports(string $slug = ''): void
+    {
+        $dateFormat = $this->config->get('exporter/file_date_suffix');
+        if (! $dateFormat) {
+            $dateFormat = Constants::DEFAULT_FILE_DATE_FORMAT;
+        }
+        $store = new PackageExportsStore(
+            $this->paths['exports'],
+            $dateFormat,
+            $this->packagesStore,
+            $this->paths['exportRelative']
+        );
+        if (empty($slug)) {
+            $store->destroyAll();
+        } else {
+            $store->destroy($slug);
         }
     }
 }

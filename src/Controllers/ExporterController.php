@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Constants;
+use App\Stores\PackageExportsStore;
 use App\Stores\PackagesStore;
 use App\Utilities\Config;
 use Bolt\Controller\Backend\BackendZoneInterface;
@@ -56,6 +57,7 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
      * Build the class
      *
      * @param AuthorizationCheckerInterface $authorizationChecker permission checker
+     * @param PackagesStore $packagesStore Our packages store
      */
     public function __construct(
         AuthorizationCheckerInterface $authorizationChecker,
@@ -111,19 +113,38 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
     }
 
     /**
-     * @Route("/exporter/start", name="app_exporter_start")
+     * @Route("/exporter/start/{slug}", name="app_exporter_start", defaults={"slug"="all"})
      *
      * Start the export process
      */
-    public function start(): Response
+    public function start(string $slug): Response
     {
+        if (! $this->isAllowed()) {
+            $response = new Response(json_encode([]), 403);
+            $response->headers->set('Content-Type', 'application/json');
+
+            return $response;
+        }
+        $slugArgument = '';
+        if ('all' !== $slug) {
+            $exists = $this->packagesStore->findBySlug($slug);
+            if (! $exists) {
+                $response = new Response(json_encode([
+                    'errors' => 'The package does not exist.',
+                ]), 500);
+                $response->headers->set('Content-Type', 'application/json');
+
+                return $response;
+            }
+            $slugArgument = ' '.$slug;
+        }
         $binDir = Path::canonicalize(\dirname(__DIR__, 2).'/bin/');
         $binFile = Path::join($binDir, 'console');
         $phpFile = Path::join(PHP_BINDIR, 'php');
-        Process::fromShellCommandline($phpFile.' '.$binFile.' exporter:export &')->start();
+        Process::fromShellCommandline($phpFile.' '.$binFile.' exporter:export'.$slugArgument.' &')->start();
         $response = new Response(json_encode([
             'started' => true,
-        ]));
+        ], 200));
         $response->headers->set('Content-Type', 'application/json');
 
         return $response;
@@ -140,9 +161,11 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
             return $this->redirectToRoute('bolt_dashboard');
         }
         $media = $this->getMedia();
+        $packages = $this->packagesStore->findAll();
 
         return $this->render('backend/exporter/index.twig', [
             'media' => $media,
+            'packages' => $packages,
         ]);
     }
 
@@ -153,50 +176,27 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
      */
     private function getMedia(): array
     {
-        $files = [];
         $dateFormat = $this->exportConfig->get('exporter/file_date_suffix');
         if (! $dateFormat) {
-            $dateFormat = Constants::DEFAULT_FILE_DATE_SUFFIX;
+            $dateFormat = Constants::DEFAULT_FILE_DATE_FORMAT;
         }
-        foreach (glob($this->paths['export'].'/*.zip') as $filename) {
-            $pieces = explode('_', basename($filename, '.zip'));
-            $isSlim = false;
-            $slug = '';
-            if (2 === \count($pieces)) {
-                $slug = $pieces[0];
-                $package = $this->packagesStore->findBySlug($slug);
-                $date = \DateTime::createFromFormat($dateFormat, $pieces[1]);
-            } elseif (3 === \count($pieces)) {
-                $slug = $pieces[1];
-                $package = $this->packagesStore->findBySlug($slug);
-                $date = \DateTime::createFromFormat($dateFormat, $pieces[2]);
-                $isSlim = true;
-            } else {
-                continue;
+        $store = new PackageExportsStore(
+            $this->paths['export'],
+            $dateFormat,
+            $this->packagesStore,
+            $this->paths['exportRelative']
+        );
+        $media = $store->findAll();
+        usort($media, function ($a, $b) {
+            $compare = strcmp($a->package->name, $b->package->name);
+            if (0 === $compare) {
+                return $a->isSlim - $b->isSlim;
             }
-            $packageName = $package ? $package->name : '';
-            if (! \array_key_exists($slug, $files)) {
-                $files[$slug] = [];
-            }
-            $files[$slug][] = [
-                'date' => $date->format('M j, Y g:i A'),
-                'filename' => basename($filename),
-                'filepath' => Path::join($this->paths['exportRelative'], basename($filename)),
-                'is_slim' => $isSlim,
-                'package' => $packageName,
-                'timestamp' => $date->getTimestamp(),
-            ];
-        }
-        $sorted = [];
-        foreach ($files as $key => $val) {
-            uasort($val, function ($a, $b) {
-                return $b['timestamp'] <=> $a['timestamp'];
-            });
-            $sorted[$key] = $val;
-        }
-        ksort($sorted);
 
-        return $sorted;
+            return $compare;
+        });
+
+        return $media;
     }
 
     /**

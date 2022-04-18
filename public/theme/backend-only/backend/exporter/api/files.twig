@@ -1,15 +1,13 @@
 [
-{% for slug, files in media %}
-    {% for file in files %}
-        {
-            "date": "{{ file.date }}",
-            "filename": "{{ file.filename }}",
-            "filepath": "{{ absolute_url(file.filepath) }}",
-            "is_slim": {{ file.is_slim | json_encode }},
-            "package": "{{ file.package }}",
-            "timestamp": {{ file.timestamp }}
-        }
-    {% if (loop.last) and (loop.parent.loop.last) %}{% else %},{% endif %}
-    {% endfor %}
+{% for file in media %}
+    {
+        "date": "{{ file.exportDate }}",
+        "filename": "{{ file.filename }}",
+        "filepath": "{{ absolute_url(file.publicPath) }}",
+        "is_slim": {{ file.isSlim | json_encode }},
+        "package": "{{ file.package.name }}",
+        "timestamp": {{ file.exportTimestamp }}
+    }
+    {% if (loop.last) %}{% else %},{% endif %}
 {% endfor %}
 ]

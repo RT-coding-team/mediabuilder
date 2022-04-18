@@ -8,54 +8,60 @@
 {% endblock %}
 {% block main %}
     <div id="message-holder"></div>
-    <div>
-        <p class="text-right">
-            <a href="{{ path('app_exporter_start') }}" class="btn btn-primary" id="export-starter"><i class="fas fa-fw fa-wrench"></i> Export</a>
-        </p>
+    <div id="package-selector-wrapper" class="card mb-3">
+        <div class="card-header">
+            <i class="fas fa-box"></i> Package
+            <div class="float-right">
+                <a href="{{ path('app_exporter_start') }}" class="no-decoration text-primary" id="export-starter"><i class="fas fa-fw fa-wrench"></i> Export</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <p>
+                    <select class="full-width form-control" name="package" id="package-selector" data-toggle-url="{{ path('app_packages_toggle', {'slug':  'SLUG'}) }}">
+                        <option value="all">All Packages</option>
+                        {% for package in packages %}
+                            <option value="{{ package.slug }}">{{ package.name }}</option>
+                        {% endfor %}
+                    </select>
+                </p>
+            </div>
+        </div>
     </div>
-    <table class="table table-sm table-hover">
-        <tbody>
-            <thead class="thead-dark">
-                <tr>
-                    <th scope="col">Filename</th>
-                    <th scope="col">Created On</th>
-                    <th scope="col">Notes</th>
-                    <th scope="col">Actions</th>
-                </tr>
-            </thead>
-            {% for slug, files in media %}
-                <thead class="thead-light">
-                    <th scope="col" colspan="4" class="text-center">{{ slug|capitalize }}</th>
-                </thead>
-                {% for file in files %}
-                    <tr>
-                        <td>{{ file.filename }}</td>
-                        <td>{{ file.date }}</td>
-                        <td>
-                    {% if file.is_slim %}Slim Package{% endif %}
-                        </td>
-                        <td>
-                            <div class="btn-group">
-                                <a href="{{ file.filepath }}" target="_blank" class="btn btn-secondary btn-block btn-sm text-nowrap">
-                                    <i class="fas fa-download mr-1"></i> Download
-                                </a>
-                                <button type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="btn btn-sm btn-secondary edit-actions__dropdown-toggler dropdown-toggle dropdown-toggle-split"><span class="sr-only">Toggle Dropdown</span></button>
-                                <div class="edit-actions__dropdown dropdown-menu dropdown-menu-right">
-                                    <form class="delete-archive" action="{{ path('app_exporter_delete') }}" data-file="{{ file.filename }}" method="post">
-                                        <input type="hidden" name="_method" value="DELETE" />
-                                        <input type="hidden" name="filename" value="{{ file.filename }}" />
-                                        <a href="#" class="dropdown-item delete-link">
-                                            <i class="fas fa-trash"></i> Delete
-                                        </a>
-                                    </form>
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-parachute-box"></i> Exports
+        </div>
+        <div class="card-body">
+            <table class="table table-sm table-hover">
+                <tbody>
+                    {% for file in media %}
+                        <tr>
+                    <td>{{ file.package.name }}{% if file.isSlim %} <span class="badge badge-primary">Slim</span>{% endif %}</td>
+                            <td>{{ file.exportDate }}</td>
+                            <td class="text-right">
+                                <div class="btn-group">
+                                    <a href="{{ file.publicPath }}" target="_blank" class="btn btn-secondary btn-block btn-sm text-nowrap">
+                                        <i class="fas fa-download mr-1"></i> Download
+                                    </a>
+                                    <button type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="btn btn-sm btn-secondary edit-actions__dropdown-toggler dropdown-toggle dropdown-toggle-split"><span class="sr-only">Toggle Dropdown</span></button>
+                                    <div class="edit-actions__dropdown dropdown-menu dropdown-menu-right">
+                                        <form class="delete-archive" action="{{ path('app_exporter_delete') }}" data-file="{{ file.filename }}" method="post">
+                                            <input type="hidden" name="_method" value="DELETE" />
+                                            <input type="hidden" name="filename" value="{{ file.filename }}" />
+                                            <a href="#" class="dropdown-item delete-link">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </a>
+                                        </form>
+                                    </div>
                                 </div>
-                            </div>
-                        </td>
-                    </tr>
-                {% endfor %}
-            {% endfor %}
-        </tbody>
-    </table>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
     {% include '@partials/confirm-modal.twig' with {'modal_id': 'confirm-delete-modal', 'title': 'Confirm', 'content': 'Are you sure you wish to delete this archive?'} %}
     {% include '@partials/confirm-modal.twig' with {'modal_id': 'confirm-export-modal', 'title': 'Confirm', 'content': 'This may take a while to build. You can close the window and come back later. Do you want to continue?'} %}
 {% endblock %}
