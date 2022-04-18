@@ -1,0 +1,8 @@
+a.no-decoration, a.no-decoration:hover {
+    text-decoration: none !important;
+}
+p.note {
+    font-style: italic;
+    font-size: .85rem;
+    margin-top: 10px;
+}

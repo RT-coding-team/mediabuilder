@@ -1,0 +1,109 @@
+{% extends '@bolt/_base/layout.html.twig' %}
+
+{% block title %}<i class="fas fa-boxes"></i> Package Manager{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/modal.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/package-manager.css') }}" />
+{% endblock %}
+{% block main %}
+    <div id="message-holder"></div>
+    <div id="package-selector-wrapper" class="card mb-3">
+        <div class="card-header">
+            <i class="fas fa-box"></i> Package
+            <div class="float-right">
+                <a href="#" id="add-package-button" class="no-decoration text-primary" data-add-url="{{ path('app_packages_create') }}"><i class="fas fa-plus-square"></i> Add</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <p>
+                    <select class="full-width form-control" name="package" id="package-selector" data-toggle-url="{{ path('app_packages_toggle', {'slug':  'SLUG'}) }}">
+                        {% for package in packages %}
+                            <option value="{{ package.slug }}">{{ package.name }}</option>
+                        {% endfor %}
+                    </select>
+                </p>
+                <div class="text-right">
+                    <a href="#" id="update-package-button" class="no-decoration text-secondary" data-update-url="{{ path('app_packages_update', {'slug':  'SLUG'}) }}"><i class="far fa-edit"></i> Edit</a>
+                    <a href="#" id="delete-package-button" class="no-decoration text-danger ml-2" data-delete-url="{{ path('app_packages_delete', {'slug':  'SLUG'}) }}"><i class="fas fa-fw fa-trash"></i> Delete</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="resources-wrapper" class="row">
+        <div id="resources-collections" class="col-sm">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-layer-group"></i> Collections
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <tbody>
+                            {% for collection in collections %}
+                                <tr>
+                                    <td><input type="checkbox" class="include-checkbox" data-slug="{{ collection.storedSlug }}" data-content-type="collection" data-packages="{{ collection.getPackages()|join('|') }}"></td>
+                                    <td>{{ collection.title }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div id="resources-singles" class="col-sm">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-square"></i> Singles
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <tbody>
+                            {% for single in singles %}
+                                <tr>
+                                    <td><input type="checkbox" class="include-checkbox" data-slug="{{ single.slug }}" data-content-type="single" data-packages="{{ single.getPackages()|join('|') }}"></td>
+                                    <td>{{ single.title }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="package-form-modal" aria-hidden="true">
+        <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+            <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
+                <header class="modal__header row">
+                    <div class="col-sm">
+                        <h3 class="modal__title text-primary">Add a Package</h3>
+                    </div>
+                    <div class="col-sm text-right">
+                        <button class="modal__close float-right btn btn-link" aria-label="Close modal" data-micromodal-close><i class="fas fa-times"></i></button>
+                    </div>
+                </header>
+                <main class="modal__content">
+                    <form id="package-form" action="#" method="post" data-task="add-package">
+                        <div class="form-group row">
+                            <label for="form-package-name" class="col-sm-2 col-form-label">Name</label>
+                            <div class="col-sm-10">
+                              <input type="text" class="form-control" id="form-package-name" name="name">
+                            </div>
+                        </div>
+                    </form>
+                </main>
+                <footer class="modal__footer float-right">
+                    <button class="btn btn-primary trigger-confirm">Save</button>
+                    <button class="btn btn-sm btn-secondary trigger-cancel" data-micromodal-close aria-label="Close this dialog window">Cancel</button>
+                </footer>
+            </div>
+        </div>
+    </div>
+    {% include '@partials/confirm-modal.twig' with {'modal_id': 'confirm-delete-modal', 'title': 'Confirm', 'content': '<p>Are you sure you wish to delete this package?</p><p class="note">* This will not delete the Collections or Singles.</p>'} %}
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/micromodal/0.4.10/micromodal.min.js" integrity="sha512-qcwcAul7d7yUcoz3MmQABiaGDa+gVkaDWgZX6wEd/z3I6z62nQCDW3EqioQG+O+QlGCpxmJLdH5snh4IaDPiPA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="{{ asset('assets/utilities.js') }}"></script>
+    <script src="{{ asset('assets/package-manager.js') }}"></script>
+{% endblock %}

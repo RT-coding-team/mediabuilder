@@ -1,0 +1,21 @@
+<div class="modal" id="{{ modal_id }}" aria-hidden="true">
+    <div class="modal__overlay" tabindex="-1" data-micromodal-close>
+        <div class="modal__container" role="dialog" aria-modal="true" aria-labelledby="modal-1-title">
+            <header class="modal__header row">
+                <div class="col-sm">
+                    <h3 class="modal__title text-danger">{{ title }}</h3>
+                </div>
+                <div class="col-sm text-right">
+                    <button class="modal__close float-right btn btn-link" aria-label="Close modal" data-micromodal-close><i class="fas fa-times"></i></button>
+                </div>
+            </header>
+            <main class="modal__content">
+                {{ content|raw }}
+            </main>
+            <footer class="modal__footer float-right">
+                <button class="btn btn-primary trigger-confirm">Continue</button>
+                <button class="btn btn-sm btn-secondary trigger-cancel" data-micromodal-close aria-label="Close this dialog window">Close</button>
+            </footer>
+        </div>
+    </div>
+</div>
