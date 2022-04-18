@@ -9,6 +9,7 @@ use App\Models\Collection;
 use App\Models\Language;
 use App\Models\Package;
 use App\Models\Single;
+use App\Stores\PackageExportsStore;
 use Webmozart\PathUtil\Path;
 
 /**
@@ -49,20 +50,6 @@ class PackageExporter
      * @var string
      */
     private $exportsDir = '';
-
-    /**
-     * The name of the file we are working on.
-     *
-     * @var string
-     */
-    private $exportFilename = '';
-
-    /**
-     * The file suffix
-     *
-     * @var string
-     */
-    private $fileDateSuffix = '';
 
     /**
      * Our file logger
@@ -133,10 +120,6 @@ class PackageExporter
         }
         $this->exportsDir = $exportsDir;
         $this->config = $config;
-        $this->fileDateSuffix = $this->config->get(
-            'exporter/file_date_suffix',
-            Constants::DEFAULT_FILE_DATE_SUFFIX
-        );
         $this->fileLogger = $fileLogger;
         $logoPath = $this->config->get('exporter/logo_public_path');
         if ($logoPath) {
@@ -199,27 +182,28 @@ class PackageExporter
     /**
      * Start the export process.
      *
-     * @param string $itemName The item name for this export
-     * @param string $filePrefix The name to append to the archive
+     * @param string $packageName The package name for this export
+     * @param string $packageSlug The slug of the package
      *
      * @see https://www.php.net/manual/en/datetime.format.php
      */
     private function start(
-        string $itemName,
-        string $filePrefix
+        string $packageName,
+        string $packageSlug
     ): void {
         $this->log('Export started!');
         $today = new \DateTime();
         $this->mainData = [
-            'itemName' => $itemName,
+            'itemName' => $packageName,
             'content' => [],
         ];
         $this->languageData = [];
-        $this->exportFilename = $filePrefix.'_'.$today->format($this->fileDateSuffix);
-        if ($this->isSlim) {
-            $this->exportFilename = 'slim_'.$this->exportFilename;
-        }
-        $this->directories['export_root'] = Path::join($this->exportsDir, $this->exportFilename);
+        $dateFormat = $this->config->get(
+            'exporter/file_date_suffix',
+            Constants::DEFAULT_FILE_DATE_FORMAT
+        );
+        $exportFilename = PackageExportsStore::getFilename($packageSlug, $dateFormat, $this->isSlim);
+        $this->directories['export_root'] = Path::join($this->exportsDir, basename($exportFilename, '.zip'));
         if (! file_exists($this->directories['export_root'])) {
             mkdir($this->directories['export_root'], 0777, true);
         }

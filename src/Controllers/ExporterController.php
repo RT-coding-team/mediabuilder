@@ -188,7 +188,7 @@ class ExporterController extends TwigAwareController implements BackendZoneInter
     {
         $dateFormat = $this->exportConfig->get('exporter/file_date_suffix');
         if (! $dateFormat) {
-            $dateFormat = Constants::DEFAULT_FILE_DATE_SUFFIX;
+            $dateFormat = Constants::DEFAULT_FILE_DATE_FORMAT;
         }
 
         return $this->exportMedia->get($this->paths['export'], $this->paths['exportRelative'], $dateFormat);

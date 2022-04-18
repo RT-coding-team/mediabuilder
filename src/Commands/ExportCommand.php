@@ -273,7 +273,7 @@ class ExportCommand extends Command
     {
         $dateFormat = $this->config->get('exporter/file_date_suffix');
         if (! $dateFormat) {
-            $dateFormat = Constants::DEFAULT_FILE_DATE_SUFFIX;
+            $dateFormat = Constants::DEFAULT_FILE_DATE_FORMAT;
         }
 
         $media = $this->exportMedia->get($this->paths['exports'], $this->paths['exportRelative'], $dateFormat);
