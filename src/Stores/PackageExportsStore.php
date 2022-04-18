@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Stores;
 
 use App\Models\PackageExport;
+use App\Models\Package;
 use Webmozart\PathUtil\Path;
 
 /**
@@ -168,6 +169,9 @@ class PackageExportsStore
             $isSlim = true;
         } else {
             return null;
+        }
+        if (empty($package)) {
+            $package = new Package('Missing Package', 'missing-package');
         }
 
         return new PackageExport(
