@@ -6,8 +6,10 @@ namespace App\Controllers;
 
 use App\Constants;
 use App\Stores\CollectionsStore;
+use App\Stores\PackageExportsStore;
 use App\Stores\PackagesStore;
 use App\Stores\SinglesStore;
+use App\Utilities\Config;
 use Bolt\Configuration\Config as BoltConfig;
 use Bolt\Controller\TwigAwareController;
 use Bolt\Repository\ContentRepository;
@@ -18,6 +20,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Webmozart\PathUtil\Path;
 
 /**
  * Controller for handling packages.
@@ -46,6 +49,13 @@ class PackageController extends TwigAwareController
     private $packagesStore = null;
 
     /**
+     * Our package exports store
+     *
+     * @var PackageExportsStore
+     */
+    private $packageExportsStore = null;
+
+    /**
      * Our singles store
      *
      * @var SinglesStore
@@ -56,6 +66,7 @@ class PackageController extends TwigAwareController
         AuthorizationCheckerInterface $authorizationChecker,
         BoltConfig $boltConfig,
         CollectionsStore $collectionsStore,
+        Config $config,
         ContentRepository $contentRepository,
         EntityManagerInterface $entityManager,
         PackagesStore $packagesStore,
@@ -65,6 +76,19 @@ class PackageController extends TwigAwareController
     ) {
         $this->authorizationChecker = $authorizationChecker;
         $this->collectionsStore = $collectionsStore;
+        $dateFormat = $config->get('exporter/file_date_suffix');
+        if (! $dateFormat) {
+            $dateFormat = Constants::DEFAULT_FILE_DATE_FORMAT;
+        }
+        $relativePublicPath = $config->get('exporter/public_path');
+        $absolutePublicDir = Path::canonicalize(\dirname(__DIR__, 2).'/public/');
+        $absolutePath = Path::canonicalize($absolutePublicDir.$relativePublicPath);
+        $this->packageExportsStore = new PackageExportsStore(
+            $absolutePath,
+            $dateFormat,
+            $packagesStore,
+            $relativePublicPath
+        );
         $this->packagesStore = $packagesStore;
         $this->singlesStore = $singlesStore;
     }
@@ -137,6 +161,8 @@ class PackageController extends TwigAwareController
 
             return $response;
         }
+        // We need to clear files first, or they will get marked as missing package
+        $this->packageExportsStore->destroy($slug);
         $success = $this->packagesStore->destroy($slug);
         if (! $success) {
             $response = new Response(json_encode([

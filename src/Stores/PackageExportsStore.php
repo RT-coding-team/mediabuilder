@@ -60,7 +60,7 @@ class PackageExportsStore
      *
      * @return bool Did it remove the files?
      */
-    public function deleteBySlug(string $slug): bool
+    public function destroy(string $slug): bool
     {
         $exports = $this->findBySlug($slug);
         foreach ($exports as $export) {
@@ -75,7 +75,7 @@ class PackageExportsStore
      *
      * @return bool Did it remove all the files?
      */
-    public function deleteAll(): bool
+    public function destroyAll(): bool
     {
         $exports = $this->findAll();
         foreach ($exports as $export) {

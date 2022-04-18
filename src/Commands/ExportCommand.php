@@ -273,9 +273,9 @@ class ExportCommand extends Command
             $this->paths['exportRelative']
         );
         if (empty($slug)) {
-            $store->deleteAll();
+            $store->destroyAll();
         } else {
-            $store->deleteBySlug($slug);
+            $store->destroy($slug);
         }
     }
 }
