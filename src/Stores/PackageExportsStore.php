@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Stores;
 
-use App\Models\PackageExport;
 use App\Models\Package;
+use App\Models\PackageExport;
 use Webmozart\PathUtil\Path;
 
 /**
@@ -126,6 +126,22 @@ class PackageExportsStore
         }
 
         return $exports;
+    }
+
+    /**
+     * Update the slug to match the new slug
+     *
+     * @param string $old The old slug
+     * @param string $new The new slug
+     */
+    public function updateSlug(string $old, string $new): void
+    {
+        $exports = $this->findBySlug($old);
+        foreach ($exports as $export) {
+            $newFilename = self::getFilename($new, $this->fileDateFormat, $export->isSlim);
+            $newPath = Path::join($this->absoluteDir, $newFilename);
+            rename($export->absolutePath, $newPath);
+        }
     }
 
     /**

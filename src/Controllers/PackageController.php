@@ -283,6 +283,7 @@ class PackageController extends TwigAwareController
             return $response;
         }
         $package = $this->packagesStore->update($slug, $data);
+        $this->packageExportsStore->updateSlug($slug, $package->slug);
         if (! $package) {
             $response = new Response(json_encode([
                 'errors' => 'Unable to update the package.',
