@@ -127,7 +127,7 @@ class ExportCommand extends Command
         $this->collectionsStore = $collectionsStore;
         $this->collectionsStore->siteUrl = $siteUrl;
         $this->singlesStore = $singlesStore;
-        $this->collectionsStore->siteUrl = $siteUrl;
+        $this->singlesStore->siteUrl = $siteUrl;
         $this->packagesStore = $packagesStore;
     }
 
