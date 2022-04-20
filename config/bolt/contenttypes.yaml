@@ -15,7 +15,7 @@ courses:
       class: large
       group: content
     description:
-      type: textarea
+      type: text
       group: content
       required: true
     file:
