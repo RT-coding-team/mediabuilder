@@ -76,6 +76,14 @@ collections:
         yes: Yes
       default: no
       required: true
+    episodes:
+      group: content
+      type: select
+      values: episodes/{title}
+      label: Episodes
+      multiple: true
+      required: true
+      sortable: true
     slug:
       type: slug
       uses: title
@@ -85,11 +93,6 @@ collections:
       multiple: true
       order: name
       label: Select Categories
-      group: content
-    episodes:
-      multiple: true
-      order: title
-      label: Add Episodes
       group: content
   taxonomy: [ media_type, packages, tags ]
   icon_many: "fa:layer-group"
@@ -126,12 +129,6 @@ episodes:
         type: slug
         uses: title
         group: Meta
-  relations:
-    collections:
-      multiple: false
-      order: title
-      label: Collection
-      required: true
   taxonomy: [ media_type, tags ]
   icon_many: "fa:photo-video"
   icon_one: "fa:photo-video"

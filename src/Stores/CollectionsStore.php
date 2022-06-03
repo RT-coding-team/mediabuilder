@@ -136,23 +136,15 @@ class CollectionsStore extends BaseContentStore
                 $collection->addCategory($this->getTranslatedValue($relatedContent, 'name'));
             }
         }
-        $episodeRelations = $this->relationRepository->findRelations($content, 'episodes');
-        if ($episodeRelations) {
-            foreach ($episodeRelations as $related) {
-                $relatedContent = $related->getToContent();
-                if ('episodes' !== $relatedContent->getContentType()) {
-                    /**
-                     * Found a bug where getToContent() may return the collection. We need to check the from content.
-                     */
-                    $relatedContent = $related->getFromContent();
-                    if ('episodes' !== $relatedContent->getContentType()) {
-                        continue;
-                    }
-                }
-                $episode = $this->buildEpisode($relatedContent);
-                if ($episode) {
-                    $collection->addEpisode($episode);
-                }
+        /**
+         * An array of episode ids.
+         */
+        $episodes = $content->getFieldValue('episodes');
+        foreach ($episodes as $episodeId) {
+            $episodeContent = $this->contentRepository->findOneById($episodeId);
+            $episode = $this->buildEpisode($episodeContent);
+            if ($episode) {
+                $collection->addEpisode($episode);
             }
         }
 
