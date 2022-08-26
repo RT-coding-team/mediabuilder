@@ -3,6 +3,10 @@ version: '3.4'
 services:
   db:
     container_name: mysql
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
     image: mysql:5.7
     environment:
       - MYSQL_DATABASE=bolt
@@ -20,6 +24,10 @@ services:
 
   php:
     container_name: php
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
     build:
       context: ./
       target: php
@@ -39,6 +47,10 @@ services:
 
   nginx:
     container_name: nginxbolt
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
     build:
       context: ./
       target: nginx
@@ -53,6 +65,10 @@ services:
 
   mailcatcher:
     container_name: mailcatcher
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
     image: schickling/mailcatcher
     ports:
       - target: 1080
